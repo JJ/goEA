@@ -1,0 +1,13 @@
+.project
+.idea
+.prefs
+.settings/
+*.log
+*.xml
+*.cnf
+TODO.txt
+tests/
+pkg/
+bin/
+out/
+libs/
