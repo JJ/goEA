@@ -4,25 +4,19 @@ import (
 	//"fmt"
 )
 
+// TIndividual represents a chromosome, romally a sequence.
 type TIndividual string
+
+// FitnessFunc is the type for function that evaluate a chromosome.
 type FitnessFunc func(TIndividual) int
-type TPool map[TIndividual]MValue
 
-type MValue struct {
-	fitness  int
-	state    byte
-}
-
+// IndEval: an individual and its fitness.
 type IndEval struct {
 	ind   TIndividual
 	value int
 }
 
-type TRepSndMsg struct{
-	pool TPool
-	size int
-}
-
+// ConfIsland is the input of an island gorutine.
 type ConfIsland struct {
 	Control       chan string
 	Population    []TIndividual
@@ -34,6 +28,7 @@ type ConfIsland struct {
 	CEvals        int
 }
 
+// ConfIsland is the input of an evaluator gorutine.
 type ConfEval struct {
 	chRcvPop     <-chan []TIndividual
 	chSndPopEval chan <- []IndEval
@@ -41,8 +36,9 @@ type ConfEval struct {
 	mSize        int
 }
 
+// ConfIsland is the input of an reproducer gorutine.
 type ConfRep struct {
-	chRcvPop <-chan TRepSndMsg
+	chRcvPop <-chan []IndEval
 	chSndPop chan <- []TIndividual
 	mSize    int
 }

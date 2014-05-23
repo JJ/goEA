@@ -8,17 +8,20 @@ func chooseInds2Eval(mSize int, pool TPool) {
 
 }
 
+// PoolManager is the gorutine for control de workers. The island manager.
 func PoolManager(conf ConfIsland) {
-	pool := make(TPool, len(conf.Population))
-	for _, e := range conf.Population {
-		pool[e] = MValue{-1, 1}
-	}
+	p2Eval := make([]TIndividual, len(conf.Population))
+	append(p2Eval, conf.Population...)
+	// Siempre estarán ordenados: de mayor a menor.
+	p2Rep := make([]IndEval, len(conf.Population))
+
 	sndEvals := make(chan []TIndividual, conf.ECount)
 	rcvEvals := make(chan []IndEval, conf.ECount)
 	for i := 0; i < conf.ECount; i++ {
 		go evaluator(ConfEval{sndEvals, rcvEvals, maxOne, conf.MSize})
 	}
-	sndReps := make(chan TRepSndMsg, conf.RCount)
+
+	sndReps := make(chan []IndEval, conf.RCount)
 	rcvReps := make(chan []TIndividual, conf.RCount)
 	for i := 0; i < conf.RCount; i++ {
 		go reproducer(ConfRep{sndReps, rcvReps, conf.MSize})
@@ -40,15 +43,23 @@ func PoolManager(conf ConfIsland) {
 
 		case nInds := <-rcvReps:
 			if nInds != nil {
-				pool = updatePool(pool, nInds)
-				sndReps <- RepSndMsg{pool, conf.MSize}
+				p2Eval = append(p2Eval, nInds...)
+				n2Send := conf.MSize
+				if len(p2Rep) < conf.MSize {
+					n2Send = len(p2Rep)
+				}
+				// Mando los n2Send primeros (los mejores).
+				sndReps <- p2Rep[:n2Send]
+				p2Rep = p2Rep[n2Send:]
 			}
 
+			// Los individuos evaluados vienen ordenados por su fitness
 		case iEvals := <-rcvEvals:
 			if iEvals != nil {
 				for _, par := range iEvals {
-					pool[par.ind] = MValue{par.value, 2}
+					pool1[par.ind] = MValue{par.value, 2}
 				}
+
 				workDone += len(iEvals)
 			}
 
@@ -62,6 +73,7 @@ func updatePool(pool TPool, nI []TIndividual) TPool {
 	for i := range pool {
 		inds = append(inds, i)
 	}
+
 	for _, k := range inds[len(nI):] {
 		delete(pool, k)
 	}
