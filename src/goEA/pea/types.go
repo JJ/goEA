@@ -12,8 +12,21 @@ type FitnessFunc func(TIndividual) int
 
 // IndEval: an individual and its fitness.
 type IndEval struct {
-	ind   TIndividual
-	value int
+	ind     TIndividual
+	fitness int
+}
+type TIndsEvaluated []IndEval
+
+func (this IndEval) Greater(that IndEval) bool {
+	return this.fitness > that.fitness
+}
+
+func (inds TIndsEvaluated) Len() int { return len(inds) }
+func (inds TIndsEvaluated) Less(i, j int) bool {
+	return inds[j].Greater(inds[i])
+}
+func (inds TIndsEvaluated) Swap(i, j int) {
+	inds[i], inds[j] = inds[j], inds[i]
 }
 
 // ConfIsland is the input of an island gorutine.
