@@ -31,27 +31,25 @@ func (inds TIndsEvaluated) Swap(i, j int) {
 
 // ConfIsland is the input of an island gorutine.
 type ConfIsland struct {
-	Control       chan string
-	Population    []TIndividual
-	ChSndEmigrant chan <- TIndividual
-	ChRcvEmigrant <-chan TIndividual
-	RCount        int
-	ECount        int
-	MSize         int
-	CEvals        int
+	Control          chan string
+	Population       []TIndividual
+	ChSndEmigrant    chan <- TIndividual
+	ChRcvEmigrant    <-chan TIndividual
+	RCount, ECount,
+	MSize, CEvals    int
 }
 
 // ConfIsland is the input of an evaluator gorutine.
 type ConfEval struct {
 	chRcvPop     <-chan []TIndividual
-	chSndPopEval chan <- []IndEval
+	chSndPopEval chan <- TIndsEvaluated
 	fFEval       FitnessFunc
 	mSize        int
 }
 
 // ConfIsland is the input of an reproducer gorutine.
 type ConfRep struct {
-	chRcvPop <-chan []IndEval
+	chRcvPop <-chan TIndsEvaluated
 	chSndPop chan <- []TIndividual
 	mSize    int
 }

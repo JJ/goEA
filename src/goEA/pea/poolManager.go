@@ -17,7 +17,7 @@ func PoolManager(conf ConfIsland) {
 		go evaluator(ConfEval{sndEvals, rcvEvals, maxOne, conf.MSize})
 	}
 
-	sndReps := make(chan []IndEval, conf.RCount)
+	sndReps := make(chan TIndsEvaluated, conf.RCount)
 	rcvReps := make(chan []TIndividual, conf.RCount)
 	for i := 0; i < conf.RCount; i++ {
 		go reproducer(ConfRep{sndReps, rcvReps, conf.MSize})
@@ -29,10 +29,12 @@ func PoolManager(conf ConfIsland) {
 		select { // "select bloqueante" para garantizar el control continuo
 		case cmd := <-conf.Control:
 			switch cmd {
+
 			case "start":
 
 			case "finalize":
 				active = false
+
 			default:
 				fmt.Printf("Mensaje de control %v no entendido.\n", cmd)
 			}
