@@ -7,6 +7,14 @@ import (
 // TIndividual represents a chromosome, romally a sequence.
 type TIndividual string
 
+// TInds is a sequence of TIndividual.
+type TInds []TIndividual
+
+// Pair is two individuals, named for reproduction.
+type Pair struct{
+	a TIndividual
+	b TIndividual
+}
 // FitnessFunc is the type for function that evaluate a chromosome.
 type FitnessFunc func(TIndividual) int
 
