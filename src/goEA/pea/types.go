@@ -4,8 +4,8 @@ import (
 	//"fmt"
 )
 
-// TIndividual represents a chromosome, romally a sequence.
-type TIndividual string
+// TIndividual represents a chromosome, normaly a char sequence.
+type TIndividual []rune
 
 // TInds is a sequence of TIndividual.
 type TInds []TIndividual
@@ -15,6 +15,7 @@ type Pair struct{
 	a TIndividual
 	b TIndividual
 }
+
 // FitnessFunc is the type for function that evaluate a chromosome.
 type FitnessFunc func(TIndividual) int
 
