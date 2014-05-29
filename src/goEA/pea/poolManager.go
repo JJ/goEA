@@ -7,14 +7,14 @@ import (
 // PoolManager is the gorutine for control de workers. The island manager.
 func PoolManager(conf ConfIsland) {
 	p2Eval := make([]TIndividual, len(conf.Population))
-	p2Eval = append(p2Eval, conf.Population...)
+	copy(p2Eval, conf.Population)
 	// Siempre estarán ordenados: de mayor a menor.
 	p2Rep := make(TIndsEvaluated, len(conf.Population))
 
 	sndEvals := make(chan []TIndividual, conf.ECount)
 	rcvEvals := make(chan TIndsEvaluated, conf.ECount)
 	for i := 0; i < conf.ECount; i++ {
-		go evaluator(ConfEval{sndEvals, rcvEvals, maxOne, conf.MSize})
+		go evaluator(ConfEval{sndEvals, rcvEvals, conf.FEval})
 	}
 
 	sndReps := make(chan TIndsEvaluated, conf.RCount)
@@ -54,7 +54,7 @@ func PoolManager(conf ConfIsland) {
 			// Los individuos evaluados vienen ordenados por su fitness.
 		case iEvals := <-rcvEvals:
 			if iEvals != nil {
-				p2Rep = merge(p2Rep, iEvals)
+				p2Rep = Merge(p2Rep, iEvals)
 				workDone += len(iEvals)
 			}
 
@@ -62,7 +62,8 @@ func PoolManager(conf ConfIsland) {
 	}
 }
 
-func merge(u, v TIndsEvaluated) TIndsEvaluated {
+// Merge is the mixer of two ordered sequences of individuals evaluated.
+func Merge(u, v TIndsEvaluated) TIndsEvaluated {
 	l := len(u) + len(v)
 	a := make(TIndsEvaluated, l)
 	i, j, k := 0, 0, 0

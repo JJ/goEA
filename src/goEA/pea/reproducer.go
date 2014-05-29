@@ -64,7 +64,7 @@ func reproducer(conf ConfRep) {
 			lenSubp := len(subp)
 			n := lenSubp / 2
 			parents := ParentsSelector(fparents, n)
-			nInds := make(TInds, lenSubp)
+			nInds := make(TInds, 0)
 			for _, ind := range parents {
 				i1, i2 := Crossover(ind)
 				nInds = append(nInds, i1, i2)

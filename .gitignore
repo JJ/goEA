@@ -3,6 +3,9 @@
 .prefs
 .settings/
 *.log
+*.exe
+*.so
+*.o
 *.xml
 *.cnf
 TODO.txt

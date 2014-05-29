@@ -41,24 +41,35 @@ func (inds TIndsEvaluated) Swap(i, j int) {
 // ConfIsland is the input of an island gorutine.
 type ConfIsland struct {
 	Control          chan string
-	Population       []TIndividual
 	ChSndEmigrant    chan <- TIndividual
 	ChRcvEmigrant    <-chan TIndividual
 	RCount, ECount,
-	MSize, CEvals    int
+	MSize            int
+	ConfSeqEA
 }
 
-// ConfIsland is the input of an evaluator gorutine.
+// ConfEval is the input of an evaluator gorutine.
 type ConfEval struct {
 	chRcvPop     <-chan []TIndividual
 	chSndPopEval chan <- TIndsEvaluated
-	fFEval       FitnessFunc
-	mSize        int
+	FEval       FitnessFunc
+}
+
+// ConfEval is the input of an sequential evaluator.
+type ConfEvalSeq struct {
+	Population []TIndividual
+	FEval      FitnessFunc
 }
 
 // ConfIsland is the input of an reproducer gorutine.
 type ConfRep struct {
-	chRcvPop <-chan TIndsEvaluated
-	chSndPop chan <- []TIndividual
-	mSize    int
+	chRcvPop  <-chan TIndsEvaluated
+	chSndPop  chan <- []TIndividual
+	mSize     int
+}
+
+// ConfSeqEA is the configuration for running the sequential version of the algorithm.
+type ConfSeqEA struct{
+	CEvals  int
+	ConfEvalSeq
 }

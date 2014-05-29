@@ -1,6 +1,6 @@
 package pea
 
-func maxOne(ind TIndividual) int {
+func MaxOne(ind TIndividual) int {
 	var res = 0
 	for e := range ind {
 		if e == '1' {
