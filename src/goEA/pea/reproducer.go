@@ -82,3 +82,17 @@ func reproducer(conf ConfRep) {
 		}
 	}
 }
+
+// Mutate one chromosome of the individual
+func Mutate(ind TIndividual) {
+	pos := rand.Intn(len(ind))
+	ind[pos] = ChangeGen(ind[pos])
+}
+
+func ChangeGen(i rune) rune {
+	var res rune = 0
+	if (i == 0) {
+		res = 1
+	}
+	return res
+}

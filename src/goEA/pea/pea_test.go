@@ -3,6 +3,7 @@ package pea
 import (
 	"testing"
 	"fmt"
+	"sort"
 )
 
 func ExampleEnhanceLists() {
@@ -83,6 +84,18 @@ func ExampleCrossover() {
 	// Output:
 	// [1 0 0 0 1 1]
 	// [1 1 0 1 1 0]
+}
+
+func ExampleSortIndEval() {
+	p := TIndsEvaluated{IndEval{[]rune{1,0,1,1}, 3},IndEval{[]rune{1,0,0,0}, 1},
+		IndEval{[]rune{1,1,1,1}, 4},IndEval{[]rune{0,1,0,1}, 2},
+		IndEval{[]rune{1,0,0,0}, 1}}
+
+	sort.Sort(p)
+	fmt.Println(p)
+
+	// Output:
+	// [{[1 1 1 1] 4} {[1 0 1 1] 3} {[0 1 0 1] 2} {[1 0 0 0] 1} {[1 0 0 0] 1}]
 }
 
 func Test2(t *testing.T) {

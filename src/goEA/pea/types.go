@@ -27,7 +27,7 @@ type IndEval struct {
 type TIndsEvaluated []IndEval
 
 func (this IndEval) Greater(that IndEval) bool {
-	return this.fitness > that.fitness
+	return this.fitness < that.fitness
 }
 
 func (inds TIndsEvaluated) Len() int { return len(inds) }
@@ -52,7 +52,7 @@ type ConfIsland struct {
 type ConfEval struct {
 	chRcvPop     <-chan []TIndividual
 	chSndPopEval chan <- TIndsEvaluated
-	FEval       FitnessFunc
+	FEval        FitnessFunc
 }
 
 // ConfEval is the input of an sequential evaluator.
@@ -64,7 +64,7 @@ type ConfEvalSeq struct {
 // ConfIsland is the input of an reproducer gorutine.
 type ConfRep struct {
 	chRcvPop  <-chan TIndsEvaluated
-	chSndPop  chan <- []TIndividual
+	chSndPop  chan <-[]TIndividual
 	mSize     int
 }
 
@@ -72,4 +72,5 @@ type ConfRep struct {
 type ConfSeqEA struct{
 	CEvals  int
 	ConfEvalSeq
+	PMut float32
 }
