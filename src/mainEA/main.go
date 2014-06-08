@@ -6,7 +6,7 @@ import (
 )
 
 func testSeqCEvals() {
-	conf := ea.SeqCEvals{ea.SeqConf{[]ea.TIndividual{
+	obj := ea.SeqCEvals{ea.SeqConf{[]ea.TIndividual{
 		[]rune{1, 0, 1, 0, 1, 0, 0, 0},
 		[]rune{1, 0, 1, 0, 1, 1, 0, 1},
 		[]rune{1, 0, 1, 0, 1, 1, 0, 1},
@@ -17,7 +17,7 @@ func testSeqCEvals() {
 		0.3},
 		ea.CEvalsConf{20}}
 
-	solution := conf.Run()
+	solution := obj.Run()
 
 	fmt.Println("La mejor solución es: ", solution)
 
@@ -28,7 +28,7 @@ func testSeqFitnessQuality() {
 	var qf ea.TQualityF = func(v int) bool { return v > 7 }
 	var df ea.Tdo = func(i ea.TIndEval) {}
 
-	conf := ea.SeqFitnessQuality{
+	obj := ea.SeqFitnessQuality{
 		ea.SeqConf{[]ea.TIndividual{
 			[]rune{1, 0, 1, 0, 1, 0, 0, 0},
 			[]rune{1, 0, 1, 0, 1, 1, 0, 1},
@@ -40,7 +40,25 @@ func testSeqFitnessQuality() {
 			0.3},
 		ea.FitnessQualityConf{qf, df}}
 
-	solution := conf.Run()
+	solution := obj.Run()
+
+	fmt.Println("La mejor solución es: ", solution)
+
+}
+
+func testParCEvals() {
+	obj := ea.ParCEvals{ea.ParConf{ea.SeqConf{[]ea.TIndividual{
+		[]rune{1, 0, 1, 0, 1, 0, 0, 0},
+		[]rune{1, 0, 1, 0, 1, 1, 0, 1},
+		[]rune{1, 0, 1, 0, 1, 1, 0, 1},
+		[]rune{1, 1, 1, 0, 1, 1, 0, 1},
+		[]rune{1, 0, 1, 0, 1, 1, 0, 0},
+		[]rune{0, 0, 1, 0, 1, 1, 1, 1}},
+		ea.MaxOne,
+		0.3}, 2, 2, 2},
+		ea.CEvalsConf{20}}
+
+	solution := obj.Run()
 
 	fmt.Println("La mejor solución es: ", solution)
 
@@ -48,5 +66,6 @@ func testSeqFitnessQuality() {
 
 func main() {
 	//testSeqCEvals()
-	testSeqFitnessQuality()
+	//testSeqFitnessQuality()
+	testParCEvals()
 }

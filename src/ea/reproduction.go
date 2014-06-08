@@ -5,6 +5,35 @@ import (
 	"math/rand"
 )
 
+// reproducer is the working gorutine for reproduce the individuals.
+func reproducer(chRcvPop chan TIndsEvaluated, chSndPop chan TPopulation, Mp int, pMutation float32) {
+
+	var active = true
+	for active {
+		select { // "select bloqueante" para garantizar el control continuo
+		case subp := <-chRcvPop:
+
+			fparents := EnhanceParents(subp)
+			lenSubp := len(subp)
+			n := lenSubp / 2
+			parents := ParentsSelector(fparents, n)
+			nInds := make(TInds, 0)
+			for _, ind := range parents {
+				i1, i2 := Crossover(ind)
+				nInds = append(nInds, i1, i2)
+			}
+			if lenSubp%2 == 1 {
+				nInds = append(nInds, subp[0].ind)
+			}
+
+			// TODO: mutar sobre nInds
+
+			chSndPop <- nInds
+
+		}
+	}
+}
+
 // EnhanceParents get [n(n+1)/2] potentials parents. n = len(pop).
 // Repeate n times the best individual, n-1 times the second one, ...
 // A simple strategy, to analyze a better one.

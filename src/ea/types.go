@@ -1,7 +1,7 @@
 package ea
 
 import (
-	//"fmt"
+//"fmt"
 )
 
 // TIndividual represents a chromosome, normaly a char sequence.
@@ -14,7 +14,7 @@ type TPopulation []TIndividual
 type TFitnessTermCondition func(TIndividual) bool
 
 // Pair is two individuals, named for reproduction.
-type Pair struct{
+type Pair struct {
 	a TIndividual
 	b TIndividual
 }
@@ -41,10 +41,10 @@ func (inds TIndsEvaluated) Swap(i, j int) {
 	inds[i], inds[j] = inds[j], inds[i]
 }
 
-type SeqConf struct{
+type SeqConf struct {
 	Population TPopulation
-	FitnessF TFitnessFunc
-	PMutation float32
+	FitnessF   TFitnessFunc
+	PMutation  float32
 }
 
 type CEvalsConf struct {
@@ -57,7 +57,7 @@ type TQualityF func(int) bool
 
 type FitnessQualityConf struct {
 	QualityF TQualityF
-	Do Tdo
+	Do       Tdo
 }
 
 type SeqCEvals struct {
@@ -67,5 +67,21 @@ type SeqCEvals struct {
 
 type SeqFitnessQuality struct {
 	SeqConf
+	FitnessQualityConf
+}
+
+type ParConf struct {
+	SeqConf
+	N, M,
+	Mp int
+}
+
+type ParCEvals struct {
+	ParConf
+	CEvalsConf
+}
+
+type ParFitnessQuality struct {
+	ParConf
 	FitnessQualityConf
 }

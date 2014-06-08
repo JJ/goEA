@@ -34,6 +34,7 @@ func (s *SeqCEvals) Run() TIndEval {
 			}
 		}
 		p2Eval = nInds
+
 		_, iEvals := Evaluate(p2Eval, s.FitnessF, qf, df)
 		sort.Sort(iEvals)
 		ce += len(iEvals)

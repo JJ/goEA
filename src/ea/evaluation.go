@@ -9,8 +9,7 @@ func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) (bool, TIn
 		indT := make(TIndividual, len(pop[i]))
 		copy(indT, pop[i])
 		nEntry := TIndEval{indT, sol}
-		if !qf(sol) {
-		} else {
+		if qf(sol) {
 			mejorEncontrado = true
 			df(nEntry)
 		}
@@ -23,4 +22,17 @@ func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) (bool, TIn
 		res = nRes
 	}
 	return mejorEncontrado, res
+}
+
+func evaluator(chRcvPop chan TPopulation, chSndPopEval chan TIndsEvaluated, ff TFitnessFunc, qf TQualityF, df Tdo) {
+
+	var active = true
+	for active {
+		select { // "select bloqueante" para garantizar el control continuo
+
+		case work := <-chRcvPop:
+			chSndPopEval <- Evaluate(work, ff, qf, df)
+
+		}
+	}
 }
