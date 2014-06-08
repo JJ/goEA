@@ -1,4 +1,4 @@
-package pea
+package ea
 
 import (
 	"math/rand"
@@ -7,9 +7,9 @@ import (
 // EnhanceParents get [n(n+1)/2] potentials parents. n = len(pop).
 // Repeate n times the best individual, n-1 times the second one, ...
 // A simple strategy, to analyze a better one.
-func EnhanceParents(pop TIndsEvaluated) TInds {
+func EnhanceParents(pop TIndsEvaluated) TPopulation {
 	n := len(pop)
-	res := make(TInds, n*(n+1)/2)
+	res := make(TPopulation, n*(n+1)/2)
 	indx := 0
 	for i, indEval := range pop {
 		for j := 0; j < n-i-1; j++ {
@@ -23,7 +23,7 @@ func EnhanceParents(pop TIndsEvaluated) TInds {
 }
 
 // ParentsSelector gets n pairs for reproduction.
-func ParentsSelector(pop TInds, n int) [] Pair {
+func ParentsSelector(pop TPopulation, n int) [] Pair {
 	res := make([] Pair, n)
 	nPar := len(pop)
 	for i := 0; i < n; i++ {
@@ -33,6 +33,7 @@ func ParentsSelector(pop TInds, n int) [] Pair {
 	}
 	return res
 }
+
 
 // Crossover function.
 func Crossover(p Pair) (a TIndividual, b TIndividual) {
@@ -53,43 +54,14 @@ func Crossover(p Pair) (a TIndividual, b TIndividual) {
 	return res1, res2
 }
 
-// reproducer is the working gorutine for reproduce the individuals.
-func reproducer(conf ConfRep) {
-
-	var active = true
-	for active {
-		select { // "select bloqueante" para garantizar el control continuo
-		case subp := <-conf.chRcvPop: {
-			fparents := EnhanceParents(subp)
-			lenSubp := len(subp)
-			n := lenSubp / 2
-			parents := ParentsSelector(fparents, n)
-			nInds := make(TInds, 0)
-			for _, ind := range parents {
-				i1, i2 := Crossover(ind)
-				nInds = append(nInds, i1, i2)
-			}
-			if lenSubp%2 == 1 {
-				nInds = append(nInds, subp[0].ind)
-			}
-
-			// TODO: mutar sobre nInds
-
-			conf.chSndPop <- nInds
-
-		}
-
-		}
-	}
-}
 
 // Mutate one chromosome of the individual
 func Mutate(ind TIndividual) {
 	pos := rand.Intn(len(ind))
-	ind[pos] = ChangeGen(ind[pos])
+	ind[pos] = changeGen(ind[pos])
 }
 
-func ChangeGen(i rune) rune {
+func changeGen(i rune) rune {
 	var res rune = 0
 	if (i == 0) {
 		res = 1
