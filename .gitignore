@@ -7,6 +7,9 @@
 *.so
 *.o
 *.xml
+*.zip
+*.rar
+*.7z
 *.cnf
 TODO.txt
 tests/

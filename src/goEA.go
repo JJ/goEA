@@ -1,7 +1,6 @@
 package main
 
 import (
-	"goEA/problems"
 	"fmt"
 	"goEA/ea"
 )
@@ -25,7 +24,7 @@ import (
 func testSeqCEvals() {
 	conf := ea.SeqCEvals{ea.SeqConf{[]ea.TIndividual{[]rune{1, 0, 1, 0, 1, 0, 0, 0}, []rune{1, 0, 1, 0, 1, 1, 0, 1}, []rune{1, 0, 1, 0, 1, 1, 0, 1},
 		[]rune{1, 1, 1, 0, 1, 1, 0, 1}, []rune{1, 0, 1, 0, 1, 1, 0, 0}, []rune{0, 0, 1, 0, 1, 1, 1, 1}},
-		problems.MaxOne,
+		ea.MaxOne,
 		0.3},
 		ea.CEvalsConf{20}}
 	solution := conf.Run()

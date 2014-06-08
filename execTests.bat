@@ -1,3 +1,3 @@
 cd src
-go test goEA/pea
+go test goEA/ea
 cd ..
