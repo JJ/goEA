@@ -76,27 +76,23 @@ func ParentsSelector(pop TPopulation, n int) []Pair {
 func Crossover(p Pair) (a TIndividual, b TIndividual) {
 	indLength := len(p.a)
 
-	if indLength > 0 { // TODO: quitar esto, no puede ser en un programa correcto
-		cPoint := rand.Intn(indLength-1) + 1
-		res1 := make(TIndividual, indLength)
-		res2 := make(TIndividual, indLength)
+	cPoint := rand.Intn(indLength-1) + 1
+	res1 := make(TIndividual, indLength)
+	res2 := make(TIndividual, indLength)
 
-		for i := 0; i < cPoint; i++ {
-			res1[i] = p.a[i]
-			res2[i] = p.b[i]
-		}
-		for i := cPoint; i < indLength; i++ {
-			res1[i] = p.b[i]
-			res2[i] = p.a[i]
-		}
-
-		return res1, res2
-	} else {
-		return a, b
+	for i := 0; i < cPoint; i++ {
+		res1[i] = p.a[i]
+		res2[i] = p.b[i]
 	}
+	for i := cPoint; i < indLength; i++ {
+		res1[i] = p.b[i]
+		res2[i] = p.a[i]
+	}
+
+	return res1, res2
 }
 
-// Mutate one chromosome of the individual
+// Mutate one chromosome of the individual.
 func Mutate(ind TIndividual) {
 	pos := rand.Intn(len(ind))
 	ind[pos] = changeGen(ind[pos])

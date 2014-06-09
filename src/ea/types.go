@@ -10,9 +10,6 @@ type TIndividual []rune
 // TPopulation is a sequence of TIndividual.
 type TPopulation []TIndividual
 
-// TFitnessTermCondition is the function to use when the termination condition is by fitness.
-type TFitnessTermCondition func(TIndividual) bool
-
 // Pair is two individuals, named for reproduction.
 type Pair struct {
 	a TIndividual
