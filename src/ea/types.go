@@ -24,19 +24,16 @@ type TIndEval struct {
 	ind     TIndividual
 	fitness int
 }
-type TIndsEvaluated []TIndEval
 
 func (this TIndEval) Greater(that TIndEval) bool {
 	return this.fitness < that.fitness
 }
 
-func (inds TIndsEvaluated) Len() int { return len(inds) }
-func (inds TIndsEvaluated) Less(i, j int) bool {
-	return inds[j].Greater(inds[i])
-}
-func (inds TIndsEvaluated) Swap(i, j int) {
-	inds[i], inds[j] = inds[j], inds[i]
-}
+type TIndsEvaluated []TIndEval
+
+func (inds TIndsEvaluated) Len() int           { return len(inds) }
+func (inds TIndsEvaluated) Less(i, j int) bool { return inds[j].Greater(inds[i]) }
+func (inds TIndsEvaluated) Swap(i, j int)      { inds[i], inds[j] = inds[j], inds[i] }
 
 type SeqConf struct {
 	Population TPopulation

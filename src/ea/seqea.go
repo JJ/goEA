@@ -6,6 +6,7 @@ import (
 	"sort"
 )
 
+// Run is the method of SeqCEvals to find the solution by the amount of evaluations criteria.
 func (s *SeqCEvals) Run() TIndEval {
 	p2Eval := make(TPopulation, len(s.Population))
 	copy(p2Eval, s.Population)
@@ -16,6 +17,7 @@ func (s *SeqCEvals) Run() TIndEval {
 	_, iEvals := Evaluate(p2Eval, s.FitnessF, qf, df)
 	ce := len(iEvals)
 	sort.Sort(iEvals)
+
 	for ce < s.CEvals {
 
 		p2Eval = Reproduce(iEvals, s.PMutation)
@@ -30,6 +32,7 @@ func (s *SeqCEvals) Run() TIndEval {
 	return iEvals[0]
 }
 
+// Run is the method of SeqFitnessQuality to find the solution by the fitness quality criteria.
 func (s *SeqFitnessQuality) Run() TIndEval {
 
 	p2Eval := make(TPopulation, len(s.Population))

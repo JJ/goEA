@@ -1,5 +1,6 @@
 package ea
 
+// Evaluate is the evaluation routine.
 func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) (bool, TIndsEvaluated) {
 	res := make(TIndsEvaluated, len(pop))
 	i := 0
@@ -24,6 +25,7 @@ func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) (bool, TIn
 	return mejorEncontrado, res
 }
 
+// evaluator is the working gorutine for evaluate individuals.
 func evaluator(chRcvPop chan TPopulation, chSndPopEval chan TIndsEvaluated, ff TFitnessFunc, qf TQualityF, df Tdo) {
 
 	var active = true

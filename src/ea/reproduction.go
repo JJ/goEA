@@ -5,6 +5,7 @@ import (
 	"math/rand"
 )
 
+// Reproduce is the reproduction routine.
 func Reproduce(iEvals TIndsEvaluated, pMutation float32) TPopulation {
 	lenSubPop := len(iEvals)
 	p2Rep := EnhanceParents(iEvals)
