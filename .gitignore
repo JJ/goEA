@@ -3,6 +3,7 @@
 .iml
 .prefs
 .settings/
+
 *.log
 *.exe
 *.so
@@ -12,9 +13,11 @@
 *.rar
 *.7z
 *.cnf
-TODO.txt
-tests/
+
 pkg/
 bin/
 out/
 libs/
+
+TODO.txt
+tests/
