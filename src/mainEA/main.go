@@ -55,7 +55,7 @@ func testParCEvals() {
 		[]rune{1, 0, 1, 0, 1, 1, 0, 0},
 		[]rune{0, 0, 1, 0, 1, 1, 1, 1}},
 		ea.MaxOne,
-		0.3}, 2, 2, 2},
+		0.3}, 2, 2, 2, 2},
 		ea.CEvalsConf{20}}
 
 	solution := obj.Run()

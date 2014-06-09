@@ -5,7 +5,13 @@ import (
 )
 
 // PoolManager is the gorutine for control de workers. The island manager.
-func PoolManagerCEvals() {
+func PoolManagerCEvals(population TPopulation,
+	eCount int, rCount int,
+	mSizeEval int, mSizeRep int,
+	pMutation float32, cEvals int,
+	ff TFitnessFunc,
+	control chan string) {
+
 	var qf TQualityF = func(v int) bool { return false }
 	var df Tdo = func(i TIndEval) {}
 
@@ -23,7 +29,7 @@ func PoolManagerCEvals() {
 	sndReps := make(chan TIndsEvaluated, rCount)
 	rcvReps := make(chan TPopulation, rCount)
 	for i := 0; i < rCount; i++ {
-		go reproducer(sndReps, rcvReps, Mp, pMutation)
+		go reproducer(sndReps, rcvReps, pMutation)
 	}
 
 	ce := 0
@@ -31,7 +37,7 @@ func PoolManagerCEvals() {
 
 		select { // "select bloqueante" para garantizar el control continuo
 
-		case cmd := <-conf.Control:
+		case cmd := <-control:
 			switch cmd {
 
 			case "start":
@@ -46,7 +52,7 @@ func PoolManagerCEvals() {
 				p2Rep = Merge(p2Rep, iEvals)
 				ce += len(iEvals)
 
-				nSend2Eval := mSize
+				nSend2Eval := mSizeEval
 				if len(p2Eval) < nSend2Eval {
 					nSend2Eval = len(p2Eval)
 				}
@@ -58,12 +64,12 @@ func PoolManagerCEvals() {
 		case nInds := <-rcvReps:
 			if nInds != nil {
 				p2Eval = append(p2Eval, nInds...)
-				nSend2Rep := mSize
+				nSend2Rep := mSizeRep
 				if len(p2Rep) < nSend2Rep {
 					nSend2Rep = len(p2Rep)
 				}
 				// Mando los nSend2Rep primeros (los mejores).
-				sndReps <- append([]IndEval{}, p2Rep[:nSend2Rep]...)
+				sndReps <- append([]TIndEval{}, p2Rep[:nSend2Rep]...)
 				p2Rep = p2Rep[nSend2Rep:]
 			}
 

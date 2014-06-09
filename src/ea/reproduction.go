@@ -5,31 +5,37 @@ import (
 	"math/rand"
 )
 
+func Reproduce(iEvals TIndsEvaluated, pMutation float32) TPopulation {
+	lenSubPop := len(iEvals)
+	p2Rep := EnhanceParents(iEvals)
+	parents := ParentsSelector(p2Rep, lenSubPop/2)
+	nInds := make(TPopulation, 0)
+	for _, ind := range parents {
+		i1, i2 := Crossover(ind)
+		nInds = append(nInds, i1, i2)
+	}
+	if lenSubPop%2 == 1 {
+		nInds = append(nInds, iEvals[0].ind)
+	}
+	for _, ind := range nInds {
+		if rand.Float32() < pMutation {
+			Mutate(ind)
+		}
+	}
+	return nInds
+}
+
 // reproducer is the working gorutine for reproduce the individuals.
-func reproducer(chRcvPop chan TIndsEvaluated, chSndPop chan TPopulation, Mp int, pMutation float32) {
+func reproducer(
+	chRcvPop chan TIndsEvaluated,
+	chSndPop chan TPopulation,
+	pMutation float32) {
 
 	var active = true
 	for active {
 		select { // "select bloqueante" para garantizar el control continuo
-		case subp := <-chRcvPop:
-
-			fparents := EnhanceParents(subp)
-			lenSubp := len(subp)
-			n := lenSubp / 2
-			parents := ParentsSelector(fparents, n)
-			nInds := make(TInds, 0)
-			for _, ind := range parents {
-				i1, i2 := Crossover(ind)
-				nInds = append(nInds, i1, i2)
-			}
-			if lenSubp%2 == 1 {
-				nInds = append(nInds, subp[0].ind)
-			}
-
-			// TODO: mutar sobre nInds
-
-			chSndPop <- nInds
-
+		case iEvals := <-chRcvPop:
+			chSndPop <- Reproduce(iEvals, pMutation)
 		}
 	}
 }

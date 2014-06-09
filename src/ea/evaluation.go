@@ -28,11 +28,14 @@ func evaluator(chRcvPop chan TPopulation, chSndPopEval chan TIndsEvaluated, ff T
 
 	var active = true
 	for active {
+
 		select { // "select bloqueante" para garantizar el control continuo
 
 		case work := <-chRcvPop:
-			chSndPopEval <- Evaluate(work, ff, qf, df)
+			_, res := Evaluate(work, ff, qf, df)
+			chSndPopEval <- res
 
 		}
+
 	}
 }

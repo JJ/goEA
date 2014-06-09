@@ -69,8 +69,10 @@ type SeqFitnessQuality struct {
 
 type ParConf struct {
 	SeqConf
-	N, M,
-	Mp int
+	MSizeEvals,
+	MSizeReps,
+	CEvaluators,
+	CReproducers int
 }
 
 type ParCEvals struct {
