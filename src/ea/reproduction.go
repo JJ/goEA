@@ -26,21 +26,6 @@ func Reproduce(iEvals TIndsEvaluated, pMutation float32) TPopulation {
 	return nInds
 }
 
-// reproducer is the working gorutine for reproduce the individuals.
-func reproducer(
-	chRcvPop chan TIndsEvaluated,
-	chSndPop chan TPopulation,
-	pMutation float32) {
-
-	var active = true
-	for active {
-		select { // "select bloqueante" para garantizar el control continuo
-		case iEvals := <-chRcvPop:
-			chSndPop <- Reproduce(iEvals, pMutation)
-		}
-	}
-}
-
 // EnhanceParents get [n(n+1)/2] potentials parents. n = len(pop).
 // Repeate n times the best individual, n-1 times the second one, ...
 // A simple strategy, to analyze a better one.

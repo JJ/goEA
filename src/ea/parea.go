@@ -21,3 +21,4 @@ func (s *ParCEvals) Run() TIndEval {
 
 	return TIndEval{[]rune{0}, 0}
 }
+

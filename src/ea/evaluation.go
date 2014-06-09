@@ -25,19 +25,3 @@ func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) (bool, TIn
 	return mejorEncontrado, res
 }
 
-// evaluator is the working gorutine for evaluate individuals.
-func evaluator(chRcvPop chan TPopulation, chSndPopEval chan TIndsEvaluated, ff TFitnessFunc, qf TQualityF, df Tdo) {
-
-	var active = true
-	for active {
-
-		select { // "select bloqueante" para garantizar el control continuo
-
-		case work := <-chRcvPop:
-			_, res := Evaluate(work, ff, qf, df)
-			chSndPopEval <- res
-
-		}
-
-	}
-}

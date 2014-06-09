@@ -77,6 +77,43 @@ func PoolManagerCEvals(population TPopulation,
 	}
 }
 
+// evaluator is the working gorutine for evaluate individuals.
+func evaluator(
+	chRcvPop chan TPopulation,
+	chSndPopEval chan TIndsEvaluated,
+	ff TFitnessFunc, qf TQualityF, df Tdo) {
+
+	var active = true
+	for active {
+
+		select { // "select bloqueante" para garantizar el control continuo
+
+		case work := <-chRcvPop:
+			_, res := Evaluate(work, ff, qf, df)
+			chSndPopEval <- res
+
+		}
+
+	}
+}
+
+
+// reproducer is the working gorutine for reproduce the individuals.
+func reproducer(
+	chRcvPop chan TIndsEvaluated,
+	chSndPop chan TPopulation,
+	pMutation float32) {
+
+	var active = true
+	for active {
+		select { // "select bloqueante" para garantizar el control continuo
+		case iEvals := <-chRcvPop:
+			chSndPop <- Reproduce(iEvals, pMutation)
+		}
+	}
+}
+
+
 // Merge is the mixer of two ordered sequences of individuals evaluated.
 func Merge(u, v TIndsEvaluated) TIndsEvaluated {
 	l := len(u) + len(v)
