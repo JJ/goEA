@@ -22,6 +22,7 @@ func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) (bool, TIn
 		copy(nRes, res)
 		res = nRes
 	}
+	// TODO: Quitar el retorno de mejorEncontrado por redundante
 	return mejorEncontrado, res
 }
 

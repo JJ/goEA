@@ -3,6 +3,7 @@ package main
 import (
 	"ea"
 	"fmt"
+	"runtime"
 )
 
 func testSeqCEvals() {
@@ -67,5 +68,8 @@ func testParCEvals() {
 func main() {
 	//testSeqCEvals()
 	//testSeqFitnessQuality()
+
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	testParCEvals()
+
 }

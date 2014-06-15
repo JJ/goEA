@@ -14,22 +14,18 @@ func (s *SeqCEvals) Run() TIndEval {
 	var qf TQualityF = func(v int) bool { return false }
 	var df Tdo = func(i TIndEval) {}
 
-	_, iEvals := Evaluate(p2Eval, s.FitnessF, qf, df)
-	ce := len(iEvals)
-	sort.Sort(iEvals)
+	_, IndEvals := Evaluate(p2Eval, s.FitnessF, qf, df)
+	ce := len(IndEvals)
+	sort.Sort(IndEvals)
 
 	for ce < s.CEvals {
-
-		p2Eval = Reproduce(iEvals, s.PMutation)
-
-		_, iEvals := Evaluate(p2Eval, s.FitnessF, qf, df)
-
-		sort.Sort(iEvals)
-		ce += len(iEvals)
-
+		reproductionResults := Reproduce(IndEvals, s.PMutation)
+		p2Eval = reproductionResults
+		_, IndEvals = Evaluate(p2Eval, s.FitnessF, qf, df)
+		sort.Sort(IndEvals)
+		ce += len(IndEvals)
 	}
-
-	return iEvals[0]
+	return IndEvals[0]
 }
 
 // Run is the method of SeqFitnessQuality to find the solution by the fitness quality criteria.
