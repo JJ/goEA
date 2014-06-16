@@ -1,9 +1,10 @@
 package ea
 
 import (
-	//"fmt"
+	"fmt"
 	"sync"
 	"sort"
+	"syscall"
 )
 
 func (s *ParCEvals) Run() TIndEval {
@@ -28,7 +29,7 @@ func PoolManagerCEvals(population TPopulation,
 	pMutation float32, cEvals int,
 	ff TFitnessFunc, res chan <- TIndEval) {
 
-//	workers := eCount + rCount
+	//	workers := eCount + rCount
 	eJobs := make(chan EJob, eCount)
 	rJobs := make(chan RJob, rCount)
 	eResults := make(chan TIndsEvaluated, 1000)
@@ -37,6 +38,7 @@ func PoolManagerCEvals(population TPopulation,
 	control := make(chan struct {}, 0)
 	p2Eval := make(TPopulation, len(population))
 	copy(p2Eval, population)
+
 	// Siempre estarán ordenados: de mayor a menor.
 	p2Rep := make(TIndsEvaluated, 0)
 
@@ -53,6 +55,13 @@ func PoolManagerCEvals(population TPopulation,
 		}
 		// Mando los nSend2Eval primeros (de los que han quedado).
 		res := append(TPopulation{}, p2Eval[:nSend2Eval]...)
+
+//		fmt.Println("Y escogimos:")
+//		fmt.Println(nSend2Eval)
+//		fmt.Println(res)
+//
+//		syscall.Exit(1)
+
 		p2Eval = p2Eval[nSend2Eval:]
 
 		mp2Eval.Unlock()
@@ -83,6 +92,21 @@ func PoolManagerCEvals(population TPopulation,
 		go doRepJobs(rJobs)
 	}
 
+
+	logPools := func() {
+		mp2Eval.Lock()
+		mp2Rep.Lock()
+		lNoEval := len(p2Eval)
+		lEval := len(p2Rep)
+		fmt.Println("Tamaño no evaluada: ", lNoEval)
+		fmt.Println("Tamaño evaluada: ", lEval)
+		if lEval > 0{
+			fmt.Println("Mejor individuo: ", p2Rep[0])
+			fmt.Println("Peor individuo: ", p2Rep[lEval-1])
+		}
+		mp2Eval.Unlock()
+		mp2Rep.Unlock()
+	}
 	waitAndProcessResults := func() {
 		for ce := cEvals; ce > 0; {
 			select { // Blocking
@@ -104,6 +128,7 @@ func PoolManagerCEvals(population TPopulation,
 					mp2Eval.Unlock()
 				}
 			}
+			logPools()
 		}
 		control <- struct{}{}
 		res <- p2Rep[0]
@@ -199,3 +224,5 @@ func Merge(u, v TIndsEvaluated) TIndsEvaluated {
 
 	return a
 }
+
+
