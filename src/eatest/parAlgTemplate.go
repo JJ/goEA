@@ -12,11 +12,34 @@ var cantSee = 10
 type TPopulation []int
 type EJob struct {
 	Population TPopulation
-	results    chan <- TPopulation
+	results    chan <- IRes
 }
 type RJob struct {
 	Population TPopulation
-	results    chan <- TPopulation
+	results    chan <- IRes
+}
+type IRes interface {
+	Pop() TPopulation
+	Kind() int
+}
+type REval struct {
+	Population TPopulation
+}
+type RRep struct {
+	Population TPopulation
+}
+
+func (r REval) Pop() TPopulation {
+	return r.Population
+}
+func (r RRep) Pop() TPopulation {
+	return r.Population
+}
+func (r REval) Kind() int {
+	return 1
+}
+func (r RRep) Kind() int {
+	return 2
 }
 
 // PoolManager is the gorutine for control de workers. The island manager.
@@ -28,8 +51,7 @@ func TestParAlg(population TPopulation,
 	//	workers := eCount + rCount
 	eJobs := make(chan EJob, 1)
 	rJobs := make(chan RJob, 1)
-	eResults := make(chan TPopulation, 1)
-	rResults := make(chan TPopulation, 1)
+	results := make(chan IRes, 1)
 
 	control := make(chan struct{}, 1)
 	p2Eval := make(TPopulation, len(population))
@@ -88,8 +110,8 @@ func TestParAlg(population TPopulation,
 			select {
 			case <-control:
 				active = false
-			case eJobs <- EJob{selPop2Eval(), eResults}:
-			case rJobs <- RJob{selPop2Rep(), rResults}:
+			case eJobs <- EJob{selPop2Eval(), results}:
+			case rJobs <- RJob{selPop2Rep(), results}:
 			}
 		}
 		close(eJobs)
@@ -99,27 +121,29 @@ func TestParAlg(population TPopulation,
 	waitAndProcessResults := func() {
 		for ce := cEvals; ce > 0; {
 			select { // Blocking
-			case indEvals := <-eResults:
-				if indEvals != nil {
-					mp2Rep.Lock()
-					if bestSolution < indEvals[0] {
-						bestSolution = indEvals[0]
+			case res := <-results:
+				if res != nil {
+					if res.Kind() == 1 {
+						indEvals := res.Pop()
+						mp2Rep.Lock()
+						if bestSolution < indEvals[0] {
+							bestSolution = indEvals[0]
+						}
+						p2Rep = append(p2Rep, indEvals...)
+						fmt.Println("Evaluation arrived:", indEvals)
+						ce -= len(indEvals)
+						mp2Rep.Unlock()
+					}else {
+						nInds := res.Pop()
+						mp2Eval.Lock()
+						fmt.Println("R rep:", nInds)
+						p2Eval = append(p2Eval, nInds...)
+						mp2Eval.Unlock()
 					}
-					p2Rep = append(p2Rep, indEvals...)
-					fmt.Println("Evaluation arrived:", indEvals)
-					ce -= len(indEvals)
-					mp2Rep.Unlock()
-				}
-
-			case nInds := <-rResults:
-				if nInds != nil {
-					mp2Eval.Lock()
-					fmt.Println("R rep:", nInds)
-					p2Eval = append(p2Eval, nInds...)
-					mp2Eval.Unlock()
 				}
 			}
 		}
+
 		control <- struct{}{}
 
 		fmt.Println("En la lista p2Rep hay:", len(p2Rep), "elementos.")
@@ -138,10 +162,11 @@ func TestParAlg(population TPopulation,
 func (job EJob) Do() {
 	if job.Population != nil {
 		fmt.Println("E Job done:", len(job.Population))
-		res := make(TPopulation, len(job.Population))
+		vals := make(TPopulation, len(job.Population))
 		for i, v := range job.Population {
-			res[i] = v*2
+			vals[i] = v*2
 		}
+		res := REval{vals}
 		job.results <- res
 	}else {
 		job.results <- nil
@@ -151,10 +176,11 @@ func (job EJob) Do() {
 func (job RJob) Do() {
 	if job.Population != nil {
 		fmt.Println("R Job done:", len(job.Population))
-		res := make(TPopulation, len(job.Population))
+		vals := make(TPopulation, len(job.Population))
 		for i, v := range job.Population {
-			res[i] = v+1
+			vals[i] = v+1
 		}
+		res := RRep{vals}
 		job.results <- res
 	}else {
 		job.results <- nil
