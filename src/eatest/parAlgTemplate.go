@@ -28,7 +28,7 @@ func TestParAlg(population []int,
 	eJobs := make(chan EJob, 1)
 	rJobs := make(chan RJob, 1)
 	eResults := make(chan int, 1)
-//	rResults := make(chan int, 1)
+	rResults := make(chan int, 1)
 
 	control := make(chan struct{}, 1)
 	p2Eval := make([]int, len(population))
@@ -46,7 +46,7 @@ func TestParAlg(population []int,
 		if len(p2Eval) > 0 {
 			res = p2Eval[0]
 			p2Eval = p2Eval[1:]
-			fmt.Println("Sel4 EJob", res)
+			fmt.Println("Sel4 E Job", res)
 		}
 		mp2Eval.Unlock()
 		return res
@@ -57,7 +57,7 @@ func TestParAlg(population []int,
 		if len(p2Rep) > 0 {
 			res = p2Rep[0]
 			p2Rep = p2Rep[1:]
-			fmt.Println("Sel4 RJob", res)
+			fmt.Println("Sel4 R Job", res)
 		}
 		mp2Rep.Unlock()
 		return res
@@ -83,45 +83,51 @@ func TestParAlg(population []int,
 			case <-control:
 				active = false
 			case eJobs <- EJob{selPop2Eval(), eResults}:
-//			case rJobs <- RJob{selPop2Rep(), rResults}:
+			case rJobs <- RJob{selPop2Rep(), rResults}:
 			}
 		}
 		close(eJobs)
-//		close(rJobs)
+		close(rJobs)
 	}
+	bestSolution := -1
 	waitAndProcessResults := func() {
 		for ce := cEvals; ce > 0; {
 			select { // Blocking
 			case indEvals := <-eResults:
 				mp2Rep.Lock()
+				if bestSolution < indEvals{
+					bestSolution = indEvals
+				}
 				p2Rep = append(p2Rep, indEvals)
 				fmt.Println("Evaluation arrived:", indEvals)
 				mp2Rep.Unlock()
 				ce--
-//			case nInds := <-rResults:
-//				mp2Eval.Lock()
-//				fmt.Println("R rep:", nInds)
-//				p2Eval = append(p2Eval, nInds)
-//				mp2Eval.Unlock()
+
+			case nInds := <-rResults:
+				mp2Eval.Lock()
+				fmt.Println("R rep:", nInds)
+				p2Eval = append(p2Eval, nInds)
+				mp2Eval.Unlock()
 			}
 		}
 		control <- struct{}{}
+
 		fmt.Println("En la lista p2Rep hay:", len(p2Rep), "elementos.")
-		res <- p2Rep[len(p2Rep) - 1]
+		res <- bestSolution
 	}
 	for i := 0; i < eCount; i++ {
 		go doEvalJobs()
 	}
-//	for i := 0; i < rCount; i++ {
-//		go doRepJobs()
-//	}
+	for i := 0; i < rCount; i++ {
+		go doRepJobs()
+	}
 	go addJobsCEvals()
 	waitAndProcessResults()
 }
 
 func (job EJob) Do() {
 	if job.Population != 0 {
-		fmt.Println("EJob done:", job.Population*2)
+		fmt.Println("E Job done:", job.Population*2)
 		job.results <- job.Population * 2
 	}else {
 		job.results <- 0
@@ -130,7 +136,7 @@ func (job EJob) Do() {
 
 func (job RJob) Do() {
 	if job.Population != 0 {
-		fmt.Println("RJob done:", job.Population+1)
+		fmt.Println("R Job done:", job.Population+1)
 		job.results <- job.Population + 1
 	}else {
 		job.results <- 0
