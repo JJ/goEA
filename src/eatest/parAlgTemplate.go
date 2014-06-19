@@ -9,17 +9,18 @@ import (
 var cJobsdo = 0
 var cantSee = 10
 
+type TPopulation []int
 type EJob struct {
-	Population int
-	results    chan <- int
+	Population TPopulation
+	results    chan <- TPopulation
 }
 type RJob struct {
-	Population int
-	results    chan <- int
+	Population TPopulation
+	results    chan <- TPopulation
 }
 
 // PoolManager is the gorutine for control de workers. The island manager.
-func TestParAlg(population []int,
+func TestParAlg(population TPopulation,
 	eCount int, rCount int,
 	mSizeEval int, mSizeRep int,
 	cEvals int, res chan <- int) {
@@ -27,36 +28,42 @@ func TestParAlg(population []int,
 	//	workers := eCount + rCount
 	eJobs := make(chan EJob, 1)
 	rJobs := make(chan RJob, 1)
-	eResults := make(chan int, 1)
-	rResults := make(chan int, 1)
+	eResults := make(chan TPopulation, 1)
+	rResults := make(chan TPopulation, 1)
 
 	control := make(chan struct{}, 1)
-	p2Eval := make([]int, len(population))
+	p2Eval := make(TPopulation, len(population))
 	copy(p2Eval, population)
 
-	// Siempre estarán ordenados: de mayor a menor.
-	p2Rep := make([]int, 0)
-
+	p2Rep := make(TPopulation, 0)
 	var mp2Eval sync.Mutex
 	var mp2Rep sync.Mutex
 
-	selPop2Eval := func() int {
+	selPop2Eval := func() TPopulation {
+		nSend2Eval := mSizeEval
 		mp2Eval.Lock()
-		res := 0
+		if len(p2Eval) < nSend2Eval {
+			nSend2Eval = len(p2Eval)
+		}
+		res := TPopulation(nil)
 		if len(p2Eval) > 0 {
-			res = p2Eval[0]
-			p2Eval = p2Eval[1:]
+			res = append(TPopulation{}, p2Eval[:nSend2Eval]...)
+			p2Eval = p2Eval[nSend2Eval:]
 			fmt.Println("Sel4 E Job", res)
 		}
 		mp2Eval.Unlock()
 		return res
 	}
-	selPop2Rep := func() int {
+	selPop2Rep := func() TPopulation {
+		nSend2Rep := mSizeRep
 		mp2Rep.Lock()
-		res := 0
+		if len(p2Rep) < nSend2Rep {
+			nSend2Rep = len(p2Rep)
+		}
+		res := TPopulation(nil)
 		if len(p2Rep) > 0 {
-			res = p2Rep[0]
-			p2Rep = p2Rep[1:]
+			res = append(TPopulation{}, p2Rep[:nSend2Rep]...)
+			p2Rep = p2Rep[nSend2Rep:]
 			fmt.Println("Sel4 R Job", res)
 		}
 		mp2Rep.Unlock()
@@ -68,14 +75,13 @@ func TestParAlg(population []int,
 			job.Do()
 		}
 	}
-
 	doRepJobs := func() {
 		for job := range rJobs {
 			job.Do()
 		}
 	}
-	_ = selPop2Rep
-	_ = doRepJobs
+	//	_ = selPop2Rep
+	//	_ = doRepJobs
 	addJobsCEvals := func() {
 		active := true
 		for active {
@@ -94,20 +100,24 @@ func TestParAlg(population []int,
 		for ce := cEvals; ce > 0; {
 			select { // Blocking
 			case indEvals := <-eResults:
-				mp2Rep.Lock()
-				if bestSolution < indEvals{
-					bestSolution = indEvals
+				if indEvals != nil {
+					mp2Rep.Lock()
+					if bestSolution < indEvals[0] {
+						bestSolution = indEvals[0]
+					}
+					p2Rep = append(p2Rep, indEvals...)
+					fmt.Println("Evaluation arrived:", indEvals)
+					ce -= len(indEvals)
+					mp2Rep.Unlock()
 				}
-				p2Rep = append(p2Rep, indEvals)
-				fmt.Println("Evaluation arrived:", indEvals)
-				mp2Rep.Unlock()
-				ce--
 
 			case nInds := <-rResults:
-				mp2Eval.Lock()
-				fmt.Println("R rep:", nInds)
-				p2Eval = append(p2Eval, nInds)
-				mp2Eval.Unlock()
+				if nInds != nil {
+					mp2Eval.Lock()
+					fmt.Println("R rep:", nInds)
+					p2Eval = append(p2Eval, nInds...)
+					mp2Eval.Unlock()
+				}
 			}
 		}
 		control <- struct{}{}
@@ -126,19 +136,26 @@ func TestParAlg(population []int,
 }
 
 func (job EJob) Do() {
-	if job.Population != 0 {
-		fmt.Println("E Job done:", job.Population*2)
-		job.results <- job.Population * 2
+	if job.Population != nil {
+		fmt.Println("E Job done:", len(job.Population))
+		res := make(TPopulation, len(job.Population))
+		for i, v := range job.Population {
+			res[i] = v*2
+		}
+		job.results <- res
 	}else {
-		job.results <- 0
+		job.results <- nil
 	}
 }
 
 func (job RJob) Do() {
-	if job.Population != 0 {
-		fmt.Println("R Job done:", job.Population+1)
-		job.results <- job.Population + 1
+	if job.Population != nil {
+		fmt.Println("R Job done:", len(job.Population))
+		res := make(TPopulation, len(job.Population))
+		for i, v := range job.Population {
+			res[i] = v+1
+		}
+		job.results <- res
 	}else {
-		job.results <- 0
-	}
-}
+		job.results <- nil
+	}}
