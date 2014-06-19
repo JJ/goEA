@@ -3,7 +3,9 @@ package main
 import (
 	"ea"
 	"fmt"
+	"math/rand"
 	"runtime"
+	"eatest"
 )
 
 func testSeqCEvals() {
@@ -47,22 +49,36 @@ func testSeqFitnessQuality() {
 
 }
 
+func genIndividual(n int) ea.TIndividual {
+	res := make(ea.TIndividual, n)
+	for i, _ := range res {
+		if rand.Intn(100)%2 == 0 {
+			res[i] = 1
+		} else {
+			res[i] = 0
+		}
+	}
+	return res
+}
+
+func genPop(n int, m int) ea.TPopulation {
+	res := make(ea.TPopulation, n)
+	for i, _ := range res {
+		res[i] = genIndividual(m)
+	}
+	return res
+}
+
 func testParCEvals() {
-	obj := ea.ParCEvals{ea.ParConf{ea.SeqConf{[]ea.TIndividual{
-		[]rune{1, 0, 1, 0, 1, 0, 0, 0},
-		[]rune{1, 0, 1, 0, 1, 1, 0, 1},
-		[]rune{1, 0, 1, 0, 1, 1, 0, 1},
-		[]rune{1, 1, 1, 0, 1, 1, 0, 1},
-		[]rune{1, 0, 1, 0, 1, 1, 0, 0},
-		[]rune{0, 0, 1, 0, 1, 1, 1, 1}},
+	pop := genPop(36, 8)
+	obj := ea.ParCEvals{ea.ParConf{ea.SeqConf{pop,
 		ea.MaxOne,
-		0.3}, 2, 2, 2, 2},
-		ea.CEvalsConf{20}}
+		0.3}, 6, 6, 2, 4},
+		ea.CEvalsConf{200}}
 
 	solution := obj.Run()
 
 	fmt.Println("La mejor solución es: ", solution)
-
 }
 
 func main() {
@@ -70,6 +86,14 @@ func main() {
 	//testSeqFitnessQuality()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	testParCEvals()
+	//	testParCEvals()
+
+	res := make(chan int, 1)
+	eatest.TestParAlg([]int{1, 3, 5, 7, 9},
+		2, 3,
+		3, 3,
+		3, res)
+
+	fmt.Println(<-res)
 
 }
