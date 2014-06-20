@@ -89,10 +89,10 @@ func main() {
 	//	testParCEvals()
 
 	res := make(chan int, 1)
-	eatest.TestParAlg([]int{1, 3, 5, 7, 9},
+	eatest.TestParAlg([]int{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31},
 		2, 3,
-		3, 3,
-		3, res)
+		2, 2,
+		10, res)
 
 	fmt.Println(<-res)
 
