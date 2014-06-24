@@ -3,7 +3,7 @@ package eatest
 import (
 	//	"fmt"
 	//	"sync"
-//	"time"
+	//	"time"
 	//	"syscall"
 	"sync"
 )
@@ -166,8 +166,8 @@ func (job EJob) Do() {
 		}
 		job.results <- res
 	}else {
-//		finish := time.After(time.Duration(5))
-//		<-finish
+		//		finish := time.After(time.Duration(5))
+		//		<-finish
 		job.results <- nil
 	}
 }
@@ -181,7 +181,7 @@ func (job RJob) Do() {
 		}
 		job.results <- res
 	}else {
-//		finish := time.After(time.Duration(3))
-//		<-finish
+		//		finish := time.After(time.Duration(3))
+		//		<-finish
 		job.results <- nil
 	}}

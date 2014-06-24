@@ -46,7 +46,7 @@ func (s *SeqFitnessQuality) Run() TIndEval {
 			nInds = append(nInds, i1, i2)
 		}
 		if lenSubPop%2 == 1 {
-			nInds = append(nInds, iEvals[0].ind)
+			nInds = append(nInds, iEvals[0].Ind)
 		}
 		for _, ind := range nInds {
 			if rand.Float32() < s.PMutation {

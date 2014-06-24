@@ -87,9 +87,9 @@ func ExampleCrossover() {
 }
 
 func ExampleSortIndEval() {
-	p := TIndsEvaluated{TIndEval{[]rune{1,0,1,1}, 3}, TIndEval{[]rune{1,0,0,0}, 1},
-		TIndEval{[]rune{1,1,1,1}, 4}, TIndEval{[]rune{0,1,0,1}, 2},
-		TIndEval{[]rune{1,0,0,0}, 1}}
+	p := TIndsEvaluated{TIndEval{[]rune{1, 0, 1, 1}, 3}, TIndEval{[]rune{1, 0, 0, 0}, 1},
+		TIndEval{[]rune{1, 1, 1, 1}, 4}, TIndEval{[]rune{0, 1, 0, 1}, 2},
+		TIndEval{[]rune{1, 0, 0, 0}, 1}}
 
 	sort.Sort(p)
 	fmt.Println(p)
@@ -106,15 +106,15 @@ func Test2(t *testing.T) {
 func Test_SeqCEvals(t *testing.T) {
 	conf := SeqCEvals{SeqConf{[]TIndividual{[]rune{1, 0, 1, 0, 1, 0, 0, 0}, []rune{1, 0, 1, 0, 1, 1, 0, 1}, []rune{1, 0, 1, 0, 1, 1, 0, 1},
 		[]rune{1, 1, 1, 0, 1, 1, 0, 1}, []rune{1, 0, 1, 0, 1, 1, 0, 0}, []rune{0, 0, 1, 0, 1, 1, 1, 1}},
-	MaxOne,
-	0.3},
-	CEvalsConf{20}}
+		MaxOne,
+		0.3},
+		CEvalsConf{20}}
 
 	solution := conf.Run()
 
-//fmt.Println("La mejor solución es: ", solution)
+	//fmt.Println("La mejor solución es: ", solution)
 
-	if solution.fitness < 4{
+	if solution.fitness < 4 {
 		t.Fail()
 	}
 

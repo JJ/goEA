@@ -2,7 +2,6 @@ package ea
 
 import (
 	"fmt"
-	"sync"
 	"sort"
 	//	"syscall"
 )
@@ -30,180 +29,81 @@ func PoolManagerCEvals(population TPopulation,
 	ff TFitnessFunc, res chan <- TIndEval) {
 
 	//	workers := eCount + rCount
-	eJobs := make(chan EJob, eCount)
-	rJobs := make(chan RJob, rCount)
+	eJobs := make(chan IDo, 1)
+	rJobs := make(chan IDo, 1)
 	eResults := make(chan TIndsEvaluated, 1)
 	rResults := make(chan TPopulation, 1)
 
-	control := make(chan struct {}, 0)
-	p2Eval := make(TPopulation, len(population))
-	copy(p2Eval, population)
-
+	control1 := make(chan struct {}, 1)
+	control2 := make(chan struct {}, 1)
+	p2Eval := NewEvalPool()
+	p2Eval.Assign(population)
 	// Siempre estarán ordenados: de mayor a menor.
-	p2Rep := make(TIndsEvaluated, 0)
-
-	var mp2Eval sync.Mutex
-	var mp2Rep sync.Mutex
-
-	var cont1 = 0
-	var cont2 = 0
-
-	selPop2Eval := func() TPopulation {
-		nSend2Eval := mSizeEval
-
-		mp2Eval.Lock()
-
-		if len(p2Eval) < nSend2Eval {
-			nSend2Eval = len(p2Eval)
+	p2Rep := NewRepPool()
+	doJobs := func(jobs chan IDo) {
+		for job := range jobs {
+			job.Do()
 		}
-		// Mando los nSend2Eval primeros (de los que han quedado).
-		res := append(TPopulation{}, p2Eval[:nSend2Eval]...)
-
-		//		syscall.Exit(1)
-
-		p2Eval = p2Eval[nSend2Eval:]
-		cont1++
-		if cont1 <= cantSee {
-		}
-		if len(res) > 0 {
-			fmt.Println("Creando EJob, len(pop):", len(res))
-			//			fmt.Println("selPop2Eval, p2Eval len:", len(p2Eval))
-		}
-
-
-		mp2Eval.Unlock()
-
-		return res
 	}
-	selPop2Rep := func() []TIndEval {
-		nSend2Rep := mSizeRep
-
-		mp2Rep.Lock()
-		if len(p2Rep) < nSend2Rep {
-			nSend2Rep = len(p2Rep)
+	addeJobs := func() {
+		var qf TQualityF = func(v int) bool { return false }
+		var df Tdo = func(i TIndEval) {}
+		active := true
+		for active {
+			select {
+			case <-control1:
+				active = false
+			case eJobs <- EJob{p2Eval.ExtractElements(mSizeEval), ff, qf, df, eResults}:
+			}
 		}
-		// Mando los nSend2Rep primeros (los mejores).
-		//		res := append([]TIndEval{}, p2Rep[:nSend2Rep]...)
-		//		p2Rep = p2Rep[nSend2Rep:]
-
-		//		cont2++
-		//		if cont2 <= cantSee {
-		//			fmt.Println("selPop2Rep, p2Rep len:", len(p2Rep))
-		//			fmt.Println("selPop2Rep, res:", len(res))
-		//		}
-
-		mp2Rep.Unlock()
-
-		//		return res
-		return []TIndEval{}
+		close(eJobs)
 	}
-
-	for i := 0; i < eCount; i++ {
-		go doEvalJobs(eJobs)
+	addrJobs := func() {
+		active := true
+		for active {
+			select {
+			case <-control2:
+				active = false
+			case rJobs <-
+			RJob{p2Rep.ExtractElements(mSizeRep), pMutation, rResults}:
+			}
+		}
+		close(rJobs)
 	}
-	//	for i := 0; i < rCount; i++ {
-	//		go doRepJobs(rJobs)
-	//	}
-	go addJobsCEvals(control, eJobs, rJobs, selPop2Eval, selPop2Rep, ff, pMutation, eResults, rResults)
-
+	bestSolution := NewIndEval()
 	waitAndProcessResults := func() {
 		for ce := cEvals; ce > 0; {
-			//			fmt.Println(ce)
 			select { // Blocking
 			case indEvals := <-eResults:
 				if indEvals != nil && len(indEvals) > 0 {
-					mp2Rep.Lock()
-
-					p2Rep = Merge(p2Rep, indEvals)
-					//					fmt.Println("Nuevos evaluados:", len(indEvals))
-					//					fmt.Println("Para rep:", len(p2Rep))
-					//					logPools()
-					mp2Rep.Unlock()
+					if bestSolution.Fitness < indEvals[0].Fitness {
+						bestSolution = &indEvals[0]
+					}
+					p2Rep.Append(indEvals)
 					ce -= len(indEvals)
 				}
-
-				mp2Rep.Lock()
-				if len(indEvals) > 0 {
-					//					fmt.Println("Nuevos evaluados:", len(indEvals))
-					//					fmt.Println("Para rep:        ", len(p2Rep))
-				}
-				if cont2 <= cantSee {
-					cont2++
-				}
-				//					logPools()
-				mp2Rep.Unlock()
-
 			case nInds := <-rResults:
 				if nInds != nil && len(nInds) > 0 {
-					mp2Eval.Lock()
-					p2Eval = append(p2Eval, nInds...)
-
-					//					fmt.Println("Nuevos individuos:", len(nInds))
-					//					fmt.Println("Para eval:", len(p2Eval))
-
-					mp2Eval.Unlock()
+					p2Eval.Append(nInds)
 				}
 			}
-
 		}
-
-		control <- struct{}{}
-		//		fmt.Println("SE ACABOOOOOOOOOOOOOOOOOOOOO:")
-		//		fmt.Println(p2Rep)
-		res <- p2Rep[0]
+		control1 <- struct{}{}
+		control2 <- struct{}{}
+		fmt.Println("The End!")
+		res <- *bestSolution
 	}
 
+	for i := 0; i < eCount; i++ {
+		go doJobs(eJobs)
+	}
+	for i := 0; i < rCount; i++ {
+		go doJobs(rJobs)
+	}
+	go addeJobs()
+	go addrJobs()
 	waitAndProcessResults()
 }
-
-var cJobsdo = 0
-var cantSee = 10
-
-func addJobsCEvals(control chan struct{}, eJobs chan <- EJob, rJobs chan <- RJob,
-	selPop2Eval func() TPopulation, selPop2Rep func() []TIndEval,
-	FitnessF TFitnessFunc, PMutation float32,
-	reportEvalResults chan TIndsEvaluated,
-	reportRepResults chan TPopulation) {
-
-	var qf TQualityF = func(v int) bool { return false }
-	var df Tdo = func(i TIndEval) {}
-
-	active := true
-	for active {
-		select {
-
-		case <-control:
-			active = false
-
-		case eJobs <- EJob{selPop2Eval(), FitnessF, qf, df, reportEvalResults}:
-
-		case rJobs <- RJob{selPop2Rep(), PMutation, reportRepResults}:
-
-		}
-	}
-	close(eJobs)
-	close(rJobs)
-}
-
-func doEvalJobs(jobs <-chan EJob) {
-	for job := range jobs {
-		if len(job.Population) > 0 {
-			fmt.Println("job.Do con:", len(job.Population))
-		}else if cJobsdo < cantSee {
-			cJobsdo++
-			fmt.Println("job.Do vacio.")
-		}
-		job.Do()
-	}
-}
-
-// TODO: Cambiar el chanel de jods por uno de referencias a ibjetos con metodo "Do"
-func doRepJobs(jobs <-chan RJob) {
-	for job := range jobs {
-		job.Do()
-	}
-}
-
 
 func (job EJob) Do() {
 	if job.Population != nil && len(job.Population) > 0 {
@@ -224,40 +124,3 @@ func (job RJob) Do() {
 		job.results <- nil
 	}
 }
-
-// Merge is the mixer of two ordered sequences of individuals evaluated.
-func Merge(u, v TIndsEvaluated) TIndsEvaluated {
-	l := len(u) + len(v)
-	a := make(TIndsEvaluated, l)
-	i, j, k := 0, 0, 0
-	for i < l {
-		if j < len(v) && k < len(u) {
-			if v[j].Greater(u[k]) {
-				a[i] = v[j]
-				j++
-			} else {
-				a[i] = u[k]
-				k++
-			}
-		} else {
-			if j >= len(v) {
-				for k < len(u) {
-					a[i] = u[k]
-					i++
-					k++
-				}
-			} else {
-				for j < len(v) {
-					a[i] = v[j]
-					i++
-					j++
-				}
-			}
-		}
-		i++
-	}
-
-	return a
-}
-
-

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"runtime"
-	"eatest"
 )
 
 func testSeqCEvals() {
@@ -70,11 +69,11 @@ func genPop(n int, m int) ea.TPopulation {
 }
 
 func testParCEvals() {
-	pop := genPop(36, 8)
+	pop := genPop(360, 8)
 	obj := ea.ParCEvals{ea.ParConf{ea.SeqConf{pop,
 		ea.MaxOne,
-		0.3}, 6, 6, 2, 4},
-		ea.CEvalsConf{200}}
+		0.3}, 50, 50, 7, 5},
+		ea.CEvalsConf{20000}}
 
 	solution := obj.Run()
 
@@ -86,14 +85,14 @@ func main() {
 	//testSeqFitnessQuality()
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	//	testParCEvals()
+	testParCEvals()
 
-	res := make(chan int, 1)
-	eatest.TestParAlg([]int{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31},
-		1, 1,
-		2, 2,
-		10, res)
-
-	fmt.Println(<-res)
+	//	res := make(chan int, 1)
+	//	eatest.TestParAlg([]int{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31},
+	//		1, 1,
+	//		2, 2,
+	//		10, res)
+	//
+	//	fmt.Println(<-res)
 
 }

@@ -16,7 +16,7 @@ func Reproduce(iEvals TIndsEvaluated, pMutation float32) TPopulation {
 		nInds = append(nInds, i1, i2)
 	}
 	if lenSubPop%2 == 1 {
-		nInds = append(nInds, iEvals[0].ind)
+		nInds = append(nInds, iEvals[0].Ind)
 	}
 	for _, ind := range nInds {
 		if rand.Float32() < pMutation {
@@ -36,8 +36,8 @@ func EnhanceParents(pop TIndsEvaluated) TPopulation {
 	for i, indEval := range pop {
 		for j := 0; j < n-i; j++ {
 			if true { // TODO: usar probabilidad de crossover
-				rInd := make(TIndividual, len(indEval.ind))
-				copy(rInd, indEval.ind)
+				rInd := make(TIndividual, len(indEval.Ind))
+				copy(rInd, indEval.Ind)
 				res[indx] = rInd
 				indx++
 			}
@@ -68,7 +68,7 @@ func ParentsSelector(pop TPopulation, n int) []Pair {
 func Crossover(p Pair) (a TIndividual, b TIndividual) {
 	indLength := len(p.a)
 
-	cPoint := rand.Intn(indLength-1) + 1
+	cPoint := rand.Intn(indLength - 1) + 1
 	res1 := make(TIndividual, indLength)
 	res2 := make(TIndividual, indLength)
 
