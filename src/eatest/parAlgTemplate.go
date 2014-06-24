@@ -3,13 +3,10 @@ package eatest
 import (
 	//	"fmt"
 	//	"sync"
-	"time"
+//	"time"
 	//	"syscall"
 	"sync"
 )
-
-var cJobsdo = 0
-var cantSee = 50
 
 type TPopulation []int
 type EJob struct {
@@ -128,10 +125,6 @@ func TestParAlg(population TPopulation,
 	bestSolution := -1
 	waitAndProcessResults := func() {
 		for ce := cEvals; ce > 0; {
-			if cJobsdo < cantSee {
-				cJobsdo++
-				//				fmt.Println("Cant de p2Eval:", p2Eval.Length(), "Cant de p2Rep:", p2Rep.Length())
-			}
 			select { // Blocking
 			case indEvals := <-eResults:
 				if indEvals != nil && len(indEvals) > 0 {
@@ -143,8 +136,6 @@ func TestParAlg(population TPopulation,
 				}
 			case nInds := <-rResults:
 				if nInds != nil && len(nInds) > 0 {
-					//					fmt.Println("R rep:", nInds)
-					//					p2Eval = append(p2Eval, nInds...)
 					p2Eval.append(nInds)
 				}
 			}
@@ -175,8 +166,8 @@ func (job EJob) Do() {
 		}
 		job.results <- res
 	}else {
-		finish := time.After(time.Duration(5))
-		<-finish
+//		finish := time.After(time.Duration(5))
+//		<-finish
 		job.results <- nil
 	}
 }
@@ -190,7 +181,7 @@ func (job RJob) Do() {
 		}
 		job.results <- res
 	}else {
-		finish := time.After(time.Duration(3))
-		<-finish
+//		finish := time.After(time.Duration(3))
+//		<-finish
 		job.results <- nil
 	}}
