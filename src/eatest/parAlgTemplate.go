@@ -5,6 +5,7 @@ import (
 	//	"sync"
 	"time"
 	//	"syscall"
+	"sync"
 )
 
 var cJobsdo = 0
@@ -23,6 +24,59 @@ type IDo interface {
 	Do()
 }
 
+type evalPool struct {
+	pool TPopulation
+	mutex *sync.RWMutex
+	name string
+}
+
+type repPool struct {
+	pool TPopulation
+	mutex *sync.RWMutex
+}
+
+func NewEvalPool(name string) *evalPool {
+	return &evalPool{make(TPopulation, 0), new(sync.RWMutex), name}
+}
+
+func (self *evalPool) assign(pop TPopulation) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+	self.pool = make(TPopulation, len(pop))
+	copy(self.pool, pop)
+}
+
+func (self *evalPool) extractElements(mSizeEval int) TPopulation {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+	nSend2Eval := mSizeEval
+	res := TPopulation(nil)
+	if len(self.pool) > 0 {
+		if len(self.pool) < nSend2Eval {
+			nSend2Eval = len(self.pool)
+		}
+		res = make(TPopulation, nSend2Eval)
+		copy(res, self.pool)
+		//			res = append(TPopulation{}, p2Eval[:nSend2Eval]...)
+		self.pool = self.pool[nSend2Eval:]
+		fmt.Println("Extraidos", nSend2Eval, "elementos del", self.name)
+	}
+	return res
+}
+
+func (self *evalPool) append(nInds TPopulation) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+	self.pool = append(self.pool, nInds...)
+	fmt.Println("Añadidos", len(nInds), "elementos al", self.name)
+}
+
+func (self *evalPool) Length()int {
+	self.mutex.RLock()
+	defer self.mutex.RUnlock()
+	return len(self.pool)
+}
+
 // PoolManager is the gorutine for control de workers. The island manager.
 func TestParAlg(population TPopulation,
 	eCount int, rCount int,
@@ -36,91 +90,58 @@ func TestParAlg(population TPopulation,
 	rResults := make(chan TPopulation, 1)
 
 	control := make(chan struct{}, 1)
-	p2Eval := make(TPopulation, len(population))
-	copy(p2Eval, population)
-
-	p2Rep := make(TPopulation, 0)
-
-	selPop2Eval := func() TPopulation {
-		nSend2Eval := mSizeEval
-		if len(p2Eval) < nSend2Eval {
-			nSend2Eval = len(p2Eval)
-		}
-		res := TPopulation(nil)
-		if len(p2Eval) > 0 {
-			res = make(TPopulation, nSend2Eval)
-			copy(res, p2Eval)
-			//			res = append(TPopulation{}, p2Eval[:nSend2Eval]...)
-			p2Eval = p2Eval[nSend2Eval:]
-			fmt.Println("Sel4 E Job", res)
-		}
-		return res
-	}
-	selPop2Rep := func() TPopulation {
-		nSend2Rep := mSizeRep
-		if len(p2Rep) < nSend2Rep {
-			nSend2Rep = len(p2Rep)
-		}
-		res := TPopulation(nil)
-		if len(p2Rep) > 0 {
-			res = make(TPopulation, nSend2Rep)
-			copy(res, p2Rep)
-			//			res = append(TPopulation{}, p2Rep[:nSend2Rep]...)
-			p2Rep = p2Rep[nSend2Rep:]
-			fmt.Println("Sel4 R Job", res)
-		}
-		return res
-	}
+	//	p2Eval := make(TPopulation, len(population))
+	//	copy(p2Eval, population)
+	//
+	//	p2Rep := make(TPopulation, 0)
+	p2Rep := NewEvalPool("repPool")
+	p2Eval := NewEvalPool("evalPool")
+	p2Eval.assign(population)
 	doJobs := func(jobs chan IDo) {
 		for job := range jobs {
 			job.Do()
 		}
 	}
-	//	addJobsCEvals := func() {
-	//		active := true
-	//		for active {
-	//			select {
-	//			case <-control:
-	//				active = false
-	//			case eJobs <- EJob{selPop2Eval(), eResults}:
-	//			case rJobs <- RJob{selPop2Rep(), rResults}:
-	//			}
-	//		}
-	//		close(eJobs)
-	//		close(rJobs)
-	//	}
+	addJobsCEvals := func() {
+		active := true
+		for active {
+			select {
+			case <-control:
+				active = false
+			case eJobs <- EJob{p2Eval.extractElements(mSizeEval), eResults}:
+			case rJobs <- RJob{p2Rep.extractElements(mSizeRep), rResults}:
+			}
+		}
+		close(eJobs)
+		close(rJobs)
+	}
 	bestSolution := -1
 	waitAndProcessResults := func() {
 		for ce := cEvals; ce > 0; {
 			if cJobsdo < cantSee {
 				cJobsdo++
-				fmt.Println("Cant de p2Eval:", len(p2Eval), "Cant de p2Rep:", len(p2Rep))
+				fmt.Println("Cant de p2Eval:", p2Eval.Length(), "Cant de p2Rep:", p2Rep.Length())
 			}
 			select { // Blocking
-			case eJobs <- EJob{selPop2Eval(), eResults}:
-			case rJobs <- RJob{selPop2Rep(), rResults}:
 			case indEvals := <-eResults:
-				//				fmt.Println("evals")
 				if indEvals != nil && len(indEvals) > 0 {
 					if bestSolution < indEvals[0] {
 						bestSolution = indEvals[0]
 					}
-					p2Rep = append(p2Rep, indEvals...)
-					fmt.Println("Evaluation arrived:", indEvals)
+					p2Rep.append(indEvals)
 					ce -= len(indEvals)
 				}
-
 			case nInds := <-rResults:
-				//				fmt.Println("reps")
 				if nInds != nil && len(nInds) > 0 {
-					fmt.Println("R rep:", nInds)
-					p2Eval = append(p2Eval, nInds...)
+					//					fmt.Println("R rep:", nInds)
+					//					p2Eval = append(p2Eval, nInds...)
+					p2Eval.append(nInds)
 				}
 			}
 		}
 		control <- struct{}{}
 
-		fmt.Println("En la lista p2Rep hay:", len(p2Rep), "elementos.")
+		fmt.Println("En la lista p2Rep hay:", p2Rep.Length(), "elementos.")
 		res <- bestSolution
 	}
 	for i := 0; i < eCount; i++ {
@@ -129,7 +150,7 @@ func TestParAlg(population TPopulation,
 	for i := 0; i < rCount; i++ {
 		go doJobs(rJobs)
 	}
-	//	go addJobsCEvals()
+	go addJobsCEvals()
 	waitAndProcessResults()
 }
 
