@@ -1,7 +1,7 @@
 package eatest
 
 import (
-	"fmt"
+	//	"fmt"
 	//	"sync"
 	"time"
 	//	"syscall"
@@ -59,7 +59,7 @@ func (self *evalPool) extractElements(mSizeEval int) TPopulation {
 		copy(res, self.pool)
 		//			res = append(TPopulation{}, p2Eval[:nSend2Eval]...)
 		self.pool = self.pool[nSend2Eval:]
-		fmt.Println("Extraidos", nSend2Eval, "elementos del", self.name)
+		//		fmt.Println(self.name, nSend2Eval, "-")
 	}
 	return res
 }
@@ -68,10 +68,10 @@ func (self *evalPool) append(nInds TPopulation) {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 	self.pool = append(self.pool, nInds...)
-	fmt.Println("Añadidos", len(nInds), "elementos al", self.name)
+	//	fmt.Println(self.name, len(nInds), "+")
 }
 
-func (self *evalPool) Length()int {
+func (self *evalPool) Length() int {
 	self.mutex.RLock()
 	defer self.mutex.RUnlock()
 	return len(self.pool)
@@ -89,7 +89,8 @@ func TestParAlg(population TPopulation,
 	eResults := make(chan TPopulation, 1)
 	rResults := make(chan TPopulation, 1)
 
-	control := make(chan struct{}, 1)
+	control1 := make(chan struct{}, 1)
+	control2 := make(chan struct{}, 1)
 	//	p2Eval := make(TPopulation, len(population))
 	//	copy(p2Eval, population)
 	//
@@ -102,17 +103,26 @@ func TestParAlg(population TPopulation,
 			job.Do()
 		}
 	}
-	addJobsCEvals := func() {
+	addeJobs := func() {
 		active := true
 		for active {
 			select {
-			case <-control:
+			case <-control1:
 				active = false
 			case eJobs <- EJob{p2Eval.extractElements(mSizeEval), eResults}:
-			case rJobs <- RJob{p2Rep.extractElements(mSizeRep), rResults}:
 			}
 		}
 		close(eJobs)
+	}
+	addrJobs := func() {
+		active := true
+		for active {
+			select {
+			case <-control2:
+				active = false
+			case rJobs <- RJob{p2Rep.extractElements(mSizeRep), rResults}:
+			}
+		}
 		close(rJobs)
 	}
 	bestSolution := -1
@@ -120,7 +130,7 @@ func TestParAlg(population TPopulation,
 		for ce := cEvals; ce > 0; {
 			if cJobsdo < cantSee {
 				cJobsdo++
-				fmt.Println("Cant de p2Eval:", p2Eval.Length(), "Cant de p2Rep:", p2Rep.Length())
+				//				fmt.Println("Cant de p2Eval:", p2Eval.Length(), "Cant de p2Rep:", p2Rep.Length())
 			}
 			select { // Blocking
 			case indEvals := <-eResults:
@@ -139,9 +149,10 @@ func TestParAlg(population TPopulation,
 				}
 			}
 		}
-		control <- struct{}{}
+		control1 <- struct{}{}
+		control2 <- struct{}{}
 
-		fmt.Println("En la lista p2Rep hay:", p2Rep.Length(), "elementos.")
+		//		fmt.Println("En la lista p2Rep hay:", p2Rep.Length(), "elementos.")
 		res <- bestSolution
 	}
 	for i := 0; i < eCount; i++ {
@@ -150,13 +161,14 @@ func TestParAlg(population TPopulation,
 	for i := 0; i < rCount; i++ {
 		go doJobs(rJobs)
 	}
-	go addJobsCEvals()
+	go addeJobs()
+	go addrJobs()
 	waitAndProcessResults()
 }
 
 func (job EJob) Do() {
 	if job.Population != nil {
-		fmt.Println("E Job done:", len(job.Population))
+		//		fmt.Println("E Job done:", len(job.Population))
 		res := make(TPopulation, len(job.Population))
 		for i, v := range job.Population {
 			res[i] = v*2
@@ -171,7 +183,7 @@ func (job EJob) Do() {
 
 func (job RJob) Do() {
 	if job.Population != nil {
-		fmt.Println("R Job done:", len(job.Population))
+		//		fmt.Println("R Job done:", len(job.Population))
 		res := make(TPopulation, len(job.Population))
 		for i, v := range job.Population {
 			res[i] = v+1
