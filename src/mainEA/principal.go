@@ -21,7 +21,7 @@ func testSeqCEvals() {
 
 	solution := obj.Run()
 
-	fmt.Println("La mejor solución es: ", solution)
+	fmt.Println("La mejor solución es:", solution)
 
 }
 
@@ -77,14 +77,15 @@ func testParCEvals() {
 
 	solution := obj.Run()
 
-	fmt.Println("La mejor solución es: ", solution)
+	fmt.Println("La mejor solución es:", solution)
 }
 
 func main() {
-	//testSeqCEvals()
-	//testSeqFitnessQuality()
-
 	runtime.GOMAXPROCS(runtime.NumCPU())
+
+	testSeqCEvals()
+	testSeqFitnessQuality()
+
 	testParCEvals()
 
 	//	res := make(chan int, 1)

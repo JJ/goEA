@@ -1,7 +1,11 @@
 package ea
 
+import (
+	//	"fmt"
+)
+
 // Evaluate is the evaluation routine.
-func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) (bool, TIndsEvaluated) {
+func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) TIndsEvaluated {
 	res := make(TIndsEvaluated, len(pop))
 	i := 0
 	mejorEncontrado := false
@@ -22,7 +26,5 @@ func Evaluate(pop TPopulation, ff TFitnessFunc, qf TQualityF, df Tdo) (bool, TIn
 		copy(nRes, res)
 		res = nRes
 	}
-	// TODO: Quitar el retorno de mejorEncontrado por redundante
-	return mejorEncontrado, res
+	return res
 }
-

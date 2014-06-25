@@ -34,8 +34,8 @@ func PoolManagerCEvals(population TPopulation,
 	eResults := make(chan TIndsEvaluated, 1)
 	rResults := make(chan TPopulation, 1)
 
-	control1 := make(chan struct {}, 1)
-	control2 := make(chan struct {}, 1)
+	control1 := make(chan struct{}, 1)
+	control2 := make(chan struct{}, 1)
 	p2Eval := NewEvalPool()
 	p2Eval.Assign(population)
 	// Siempre estarán ordenados: de mayor a menor.
@@ -64,12 +64,12 @@ func PoolManagerCEvals(population TPopulation,
 			select {
 			case <-control2:
 				active = false
-			case rJobs <-
-			RJob{p2Rep.ExtractElements(mSizeRep), pMutation, rResults}:
+			case rJobs <- RJob{p2Rep.ExtractElements(mSizeRep), pMutation, rResults}:
 			}
 		}
 		close(rJobs)
 	}
+
 	bestSolution := NewIndEval()
 	waitAndProcessResults := func() {
 		for ce := cEvals; ce > 0; {
@@ -107,11 +107,11 @@ func PoolManagerCEvals(population TPopulation,
 
 func (job EJob) Do() {
 	if job.Population != nil && len(job.Population) > 0 {
-		_, IndEvals := Evaluate(job.Population, job.FitnessF, job.QualityF, job.DoFunc)
+		IndEvals := Evaluate(job.Population, job.FitnessF, job.QualityF, job.DoFunc)
 		sort.Sort(IndEvals)
 		//		fmt.Println("Evaluados:", len(IndEvals))
 		job.results <- IndEvals
-	}else {
+	} else {
 		job.results <- nil
 	}
 }
@@ -120,7 +120,7 @@ func (job RJob) Do() {
 	if job.IndEvals != nil && len(job.IndEvals) > 0 {
 		reproductionResults := Reproduce(job.IndEvals, job.PMutation)
 		job.results <- reproductionResults
-	}else {
+	} else {
 		job.results <- nil
 	}
 }

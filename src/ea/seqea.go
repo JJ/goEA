@@ -1,7 +1,6 @@
 package ea
 
 import (
-	//"fmt"
 	"math/rand"
 	"sort"
 )
@@ -14,14 +13,14 @@ func (s *SeqCEvals) Run() TIndEval {
 	var qf TQualityF = func(v int) bool { return false }
 	var df Tdo = func(i TIndEval) {}
 
-	_, IndEvals := Evaluate(p2Eval, s.FitnessF, qf, df)
+	IndEvals := Evaluate(p2Eval, s.FitnessF, qf, df)
 	ce := len(IndEvals)
 	sort.Sort(IndEvals)
 
 	for ce < s.CEvals {
 		reproductionResults := Reproduce(IndEvals, s.PMutation)
 		p2Eval = reproductionResults
-		_, IndEvals = Evaluate(p2Eval, s.FitnessF, qf, df)
+		IndEvals = Evaluate(p2Eval, s.FitnessF, qf, df)
 		sort.Sort(IndEvals)
 		ce += len(IndEvals)
 	}
@@ -30,11 +29,14 @@ func (s *SeqCEvals) Run() TIndEval {
 
 // Run is the method of SeqFitnessQuality to find the solution by the fitness quality criteria.
 func (s *SeqFitnessQuality) Run() TIndEval {
-
 	p2Eval := make(TPopulation, len(s.Population))
 	copy(p2Eval, s.Population)
-
-	alcanzadaSolucion, iEvals := Evaluate(p2Eval, s.FitnessF, s.QualityF, s.Do)
+	alcanzadaSolucion := false
+	alcanzadaSolucionF := func(ind TIndEval) {
+		s.Do(ind)
+		alcanzadaSolucion = true
+	}
+	iEvals := Evaluate(p2Eval, s.SeqConf.FitnessF, s.FitnessQualityConf.QualityF, alcanzadaSolucionF)
 	sort.Sort(iEvals)
 	for !alcanzadaSolucion {
 		lenSubPop := len(iEvals)
@@ -54,7 +56,7 @@ func (s *SeqFitnessQuality) Run() TIndEval {
 			}
 		}
 		p2Eval = nInds
-		alcanzadaSolucion, iEvals = Evaluate(p2Eval, s.FitnessF, s.QualityF, s.Do)
+		iEvals = Evaluate(p2Eval, s.FitnessF, s.QualityF, alcanzadaSolucionF)
 		sort.Sort(iEvals)
 	}
 
