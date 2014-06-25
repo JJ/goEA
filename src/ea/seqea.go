@@ -36,7 +36,7 @@ func (s *SeqFitnessQuality) Run() TIndEval {
 		s.Do(ind)
 		alcanzadaSolucion = true
 	}
-	iEvals := Evaluate(p2Eval, s.SeqConf.FitnessF, s.FitnessQualityConf.QualityF, alcanzadaSolucionF)
+	iEvals := Evaluate(p2Eval, s.FitnessF, s.QualityF, alcanzadaSolucionF)
 	sort.Sort(iEvals)
 	for !alcanzadaSolucion {
 		lenSubPop := len(iEvals)

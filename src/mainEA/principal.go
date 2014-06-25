@@ -8,20 +8,14 @@ import (
 )
 
 func testSeqCEvals() {
-	obj := ea.SeqCEvals{ea.SeqConf{[]ea.TIndividual{
-		[]rune{1, 0, 1, 0, 1, 0, 0, 0},
-		[]rune{1, 0, 1, 0, 1, 1, 0, 1},
-		[]rune{1, 0, 1, 0, 1, 1, 0, 1},
-		[]rune{1, 1, 1, 0, 1, 1, 0, 1},
-		[]rune{1, 0, 1, 0, 1, 1, 0, 0},
-		[]rune{0, 0, 1, 0, 1, 1, 1, 1}},
+	obj := ea.SeqCEvals{ea.SeqConf{genPop(360, 8),
 		ea.MaxOne,
 		0.3},
 		ea.CEvalsConf{20}}
 
 	solution := obj.Run()
 
-	fmt.Println("La mejor solución es:", solution)
+	fmt.Println("La mejor solución para 'SeqCEvals' es:", solution)
 
 }
 
@@ -31,20 +25,14 @@ func testSeqFitnessQuality() {
 	var df ea.Tdo = func(i ea.TIndEval) {}
 
 	obj := ea.SeqFitnessQuality{
-		ea.SeqConf{[]ea.TIndividual{
-			[]rune{1, 0, 1, 0, 1, 0, 0, 0},
-			[]rune{1, 0, 1, 0, 1, 1, 0, 1},
-			[]rune{1, 0, 1, 0, 1, 1, 0, 1},
-			[]rune{1, 1, 1, 0, 1, 1, 0, 1},
-			[]rune{1, 0, 1, 0, 1, 1, 0, 0},
-			[]rune{0, 0, 1, 0, 1, 1, 1, 1}},
+		ea.SeqConf{genPop(360, 8),
 			ea.MaxOne,
 			0.3},
 		ea.FitnessQualityConf{qf, df}}
 
 	solution := obj.Run()
 
-	fmt.Println("La mejor solución es: ", solution)
+	fmt.Println("La mejor solución para 'SeqFitnessQuality' es: ", solution)
 
 }
 
@@ -77,7 +65,22 @@ func testParCEvals() {
 
 	solution := obj.Run()
 
-	fmt.Println("La mejor solución es:", solution)
+	fmt.Println("La mejor solución para 'ParCEvals' es:", solution)
+}
+
+func testParFitnessQuality() {
+	var qf ea.TQualityF = func(v int) bool { return v > 7 }
+	var df ea.Tdo = func(i ea.TIndEval) {}
+
+	pop := genPop(360, 8)
+	obj := ea.ParFitnessQuality{ea.ParConf{ea.SeqConf{pop,
+		ea.MaxOne,
+		0.3}, 50, 50, 7, 5},
+		ea.FitnessQualityConf{qf, df}}
+
+	solution := obj.Run()
+
+	fmt.Println("La mejor solución para 'ParFitnessQuality' es:", solution)
 }
 
 func main() {
@@ -87,13 +90,6 @@ func main() {
 	testSeqFitnessQuality()
 
 	testParCEvals()
-
-	//	res := make(chan int, 1)
-	//	eatest.TestParAlg([]int{1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31},
-	//		1, 1,
-	//		2, 2,
-	//		10, res)
-	//
-	//	fmt.Println(<-res)
+	testParFitnessQuality()
 
 }
