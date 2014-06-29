@@ -57,10 +57,12 @@ func genPop(n int, m int) ea.TPopulation {
 }
 
 func testParCEvals() {
-	pop := genPop(360, 8)
-	obj := ea.ParCEvals{ea.ParConf{ea.SeqConf{pop,
+	pop := func() ea.TPopulation {
+		return genPop(360, 8)
+	}
+	obj := ea.ParCEvals1{ea.ParConf1{ea.SeqConf1{pop,
 		ea.MaxOne,
-		0.3}, 50, 50, 7, 5},
+		0.3}, 50, 50, 7, 5, 3},
 		ea.CEvalsConf{20000}}
 
 	solution := obj.Run()
@@ -86,10 +88,10 @@ func testParFitnessQuality() {
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	testSeqCEvals()
-	testSeqFitnessQuality()
+	//	testSeqCEvals()
+	//	testSeqFitnessQuality()
 
 	testParCEvals()
-	testParFitnessQuality()
+	//	testParFitnessQuality()
 
 }

@@ -1,25 +1,46 @@
 package ea
 
 import (
-	// "fmt"
+	//	"fmt"
 	"sort"
+	"math/rand"
 	//	"syscall"
 )
 
-func (s *ParCEvals) Run() TIndEval {
-	//ch1 := make(chan TIndividual, 1)
-	//ch2 := make(chan TIndividual, 1)
+func (s *ParCEvals1) Run() TIndEval {
+	cantsEvals := make([]int, s.CIslands)
+	a := s.CEvals / s.CIslands
+	for i, _ := range cantsEvals {
+		cantsEvals[i] = a
+	}
+	rest := s.CEvals % s.CIslands
+	for i := 0; i < rest; i++ {
+		cantsEvals[i]++
+	}
+	migrantsChannels := make([]chan TIndEval, s.CIslands)
+	for i, _ := range migrantsChannels {
+		migrantsChannels[i] = make(chan TIndEval, 1)
+	}
 	res := make(chan TIndEval)
-	go PoolManagerCEvals(
-		s.Population,
-		s.CEvaluators, s.CReproducers,
-		s.MSizeEvals, s.MSizeReps,
-		s.PMutation, s.CEvals,
-		s.FitnessF,
-		res)
-
-	return <-res
+	for i := 0; i < s.CIslands; i++ {
+		go PoolManagerCEvals(
+			s.GetPopulation(),
+			s.CEvaluators, s.CReproducers,
+			s.MSizeEvals, s.MSizeReps,
+			s.PMutation, cantsEvals[i],
+			s.FitnessF, res,
+			migrantsChannels[i], migrantsChannels[(i+1)%s.CIslands])
+	}
+	bestSolution := NewIndEval()
+	for i := 0; i < s.CIslands; i++ {
+		sol := <-res
+		if bestSolution.Fitness < sol.Fitness {
+			bestSolution = &sol
+		}
+	}
+	return *bestSolution
 }
+
 func (s *ParFitnessQuality) Run() TIndEval {
 	//ch1 := make(chan TIndividual, 1)
 	//ch2 := make(chan TIndividual, 1)
@@ -40,7 +61,9 @@ func PoolManagerCEvals(population TPopulation,
 	eCount int, rCount int,
 	mSizeEval int, mSizeRep int,
 	pMutation float32, cEvals int,
-	ff TFitnessFunc, res chan<- TIndEval) {
+	ff TFitnessFunc, res chan <- TIndEval,
+	newMigrant <-chan TIndEval,
+	migrantsDestination chan <- TIndEval) {
 
 	//	workers := eCount + rCount
 	eJobs := make(chan IDo, 1)
@@ -84,6 +107,14 @@ func PoolManagerCEvals(population TPopulation,
 		close(rJobs)
 	}
 
+	readingMigrants := func() {
+		for nInd := range newMigrant {
+			p2Rep.Append(TIndsEvaluated{nInd})
+			p2Rep.RemoveWorstN(1)
+			// TODO: maintain pool size when p2Rep.Length() < 1
+		}
+	}
+
 	bestSolution := NewIndEval()
 	waitAndProcessResults := func() {
 		for ce := cEvals; ce > 0; {
@@ -96,9 +127,13 @@ func PoolManagerCEvals(population TPopulation,
 					p2Rep.Append(indEvals)
 					ce -= len(indEvals)
 				}
+
 			case nInds := <-rResults:
 				if nInds != nil && len(nInds) > 0 {
 					p2Eval.Append(nInds)
+					if rand.Intn(100)%2 == 0 {
+						migrantsDestination <- *bestSolution
+					}
 				}
 			}
 		}
@@ -116,7 +151,9 @@ func PoolManagerCEvals(population TPopulation,
 	}
 	go addeJobs()
 	go addrJobs()
+	go readingMigrants()
 	waitAndProcessResults()
+
 }
 
 // PoolManager is the gorutine for control de workers. The island manager.
@@ -124,7 +161,7 @@ func PoolManagerFitnessQuality(population TPopulation,
 	eCount int, rCount int,
 	mSizeEval int, mSizeRep int,
 	pMutation float32, ff TFitnessFunc,
-	qf TQualityF, df Tdo, res chan<- TIndEval) {
+	qf TQualityF, df Tdo, res chan <- TIndEval) {
 
 	//	workers := eCount + rCount
 	eJobs := make(chan IDo, 1)

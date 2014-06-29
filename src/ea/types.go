@@ -52,6 +52,12 @@ type SeqConf struct {
 	PMutation  float32
 }
 
+type SeqConf1 struct {
+	GetPopulation func ()TPopulation
+	FitnessF   TFitnessFunc
+	PMutation  float32
+}
+
 type CEvalsConf struct {
 	CEvals int
 }
@@ -83,8 +89,22 @@ type ParConf struct {
 	CReproducers int
 }
 
+type ParConf1 struct {
+	SeqConf1
+	MSizeEvals,
+	MSizeReps,
+	CEvaluators,
+	CReproducers,
+	CIslands int
+}
+
 type ParCEvals struct {
 	ParConf
+	CEvalsConf
+}
+
+type ParCEvals1 struct {
+	ParConf1
 	CEvalsConf
 }
 
@@ -182,6 +202,16 @@ func (self *repPool) ExtractElements(mSize int) TIndsEvaluated {
 		//		fmt.Println(self.name, nSend2Eval, "-")
 	}
 	return res
+}
+
+func (self *repPool) RemoveWorstN(n int) {
+	self.mutex.Lock()
+	defer self.mutex.Unlock()
+	if n > len(self.pool) {
+		n = len(self.pool)
+	}
+	self.pool = self.pool[:len(self.pool)-n]
+	// TODO: report when n > len(self.pool)
 }
 
 // Append merge the TIndsEvaluated.
