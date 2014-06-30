@@ -8,7 +8,10 @@ import (
 )
 
 func testSeqCEvals() {
-	obj := ea.SeqCEvals{ea.SeqConf{genPop(360, 8),
+	pop := func() ea.TPopulation {
+		return genPop(360, 8)
+	}
+	obj := ea.SeqCEvals{ea.SeqConf{pop,
 		ea.MaxOne,
 		0.3},
 		ea.CEvalsConf{20}}
@@ -20,12 +23,13 @@ func testSeqCEvals() {
 }
 
 func testSeqFitnessQuality() {
-
 	var qf ea.TQualityF = func(v int) bool { return v > 7 }
 	var df ea.Tdo = func(i ea.TIndEval) {}
-
+	pop := func() ea.TPopulation {
+		return genPop(360, 8)
+	}
 	obj := ea.SeqFitnessQuality{
-		ea.SeqConf{genPop(360, 8),
+		ea.SeqConf{pop,
 			ea.MaxOne,
 			0.3},
 		ea.FitnessQualityConf{qf, df}}
@@ -60,7 +64,7 @@ func testParCEvals() {
 	pop := func() ea.TPopulation {
 		return genPop(360, 8)
 	}
-	obj := ea.ParCEvals1{ea.ParConf1{ea.SeqConf1{pop,
+	obj := ea.ParCEvals{ea.ParConf{ea.SeqConf{pop,
 		ea.MaxOne,
 		0.3}, 50, 50, 7, 5, 3},
 		ea.CEvalsConf{20000}}
@@ -70,14 +74,30 @@ func testParCEvals() {
 	fmt.Println("La mejor solución para 'ParCEvals' es:", solution)
 }
 
+//func testParFitnessQuality() {
+//	var qf ea.TQualityF = func(v int) bool { return v > 7 }
+//	var df ea.Tdo = func(i ea.TIndEval) {}
+//
+//	pop := genPop(360, 8)
+//	obj := ea.ParFitnessQuality{ea.ParConf{ea.SeqConf{pop,
+//		ea.MaxOne,
+//		0.3}, 50, 50, 7, 5},
+//		ea.FitnessQualityConf{qf, df}}
+//
+//	solution := obj.Run()
+//
+//	fmt.Println("La mejor solución para 'ParFitnessQuality' es:", solution)
+//}
 func testParFitnessQuality() {
 	var qf ea.TQualityF = func(v int) bool { return v > 7 }
 	var df ea.Tdo = func(i ea.TIndEval) {}
 
-	pop := genPop(360, 8)
+	pop := func() ea.TPopulation {
+		return genPop(360, 8)
+	}
 	obj := ea.ParFitnessQuality{ea.ParConf{ea.SeqConf{pop,
 		ea.MaxOne,
-		0.3}, 50, 50, 7, 5},
+		0.3}, 50, 50, 7, 5, 3},
 		ea.FitnessQualityConf{qf, df}}
 
 	solution := obj.Run()
@@ -88,10 +108,10 @@ func testParFitnessQuality() {
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	//	testSeqCEvals()
-	//	testSeqFitnessQuality()
+	testSeqCEvals()
+	testSeqFitnessQuality()
 
 	testParCEvals()
-	//	testParFitnessQuality()
+	testParFitnessQuality()
 
 }

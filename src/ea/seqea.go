@@ -7,8 +7,9 @@ import (
 
 // Run is the method of SeqCEvals to find the solution by the amount of evaluations criteria.
 func (s *SeqCEvals) Run() TIndEval {
-	p2Eval := make(TPopulation, len(s.Population))
-	copy(p2Eval, s.Population)
+	population := s.GetPopulation()
+	p2Eval := make(TPopulation, len(population))
+	copy(p2Eval, population)
 
 	var qf TQualityF = func(v int) bool { return false }
 	var df Tdo = func(i TIndEval) {}
@@ -29,8 +30,9 @@ func (s *SeqCEvals) Run() TIndEval {
 
 // Run is the method of SeqFitnessQuality to find the solution by the fitness quality criteria.
 func (s *SeqFitnessQuality) Run() TIndEval {
-	p2Eval := make(TPopulation, len(s.Population))
-	copy(p2Eval, s.Population)
+	population := s.GetPopulation()
+	p2Eval := make(TPopulation, len(population))
+	copy(p2Eval, population)
 	alcanzadaSolucion := false
 	alcanzadaSolucionF := func(ind TIndEval) {
 		s.Do(ind)
