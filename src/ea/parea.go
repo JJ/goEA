@@ -21,7 +21,7 @@ func (s *ParCEvals) Run() TIndEval {
 	for i, _ := range migrantsChannels {
 		migrantsChannels[i] = make(chan TIndEval, 1)
 	}
-	res := make(chan TIndEval)
+	res := make(chan TIndEval, 1)
 	for i := 0; i < s.CIslands; i++ {
 		go PoolManagerCEvals(
 			s.GetPopulation(),
@@ -140,13 +140,13 @@ func PoolManagerCEvals(population TPopulation,
 	waitAndProcessResults()
 }
 
-func (s *ParFitnessQuality) Run() TIndEval {
+func (s *ParFitnessQuality) Run() (TIndEval, int) {
 	control := make(chan struct{}, s.CIslands-1)
 	migrantsChannels := make([]chan TIndEval, s.CIslands)
 	for i, _ := range migrantsChannels {
 		migrantsChannels[i] = make(chan TIndEval, 1)
 	}
-	res := make(chan TIndEval)
+	res := make(chan TFitnessResult, 1)
 	for i := 0; i < s.CIslands; i++ {
 		go PoolManagerFitnessQuality(
 			s.GetPopulation(),
@@ -162,7 +162,7 @@ func (s *ParFitnessQuality) Run() TIndEval {
 	for i := 0; i < s.CIslands-1; i++ {
 		control <- struct{}{}
 	}
-	return sol
+	return TIndEval{sol.Ind, sol.Fitness}, sol.CEvals
 }
 
 // PoolManager is the gorutine for control de workers. The island manager.
@@ -170,7 +170,7 @@ func PoolManagerFitnessQuality(population TPopulation,
 	eCount int, rCount int,
 	mSizeEval int, mSizeRep int,
 	pMutation float32, ff TFitnessFunc,
-	qf TQualityF, df Tdo, res chan <- TIndEval,
+	qf TQualityF, df Tdo, res chan <- TFitnessResult,
 	newMigrant <-chan TIndEval,
 	migrantsDestination chan <- TIndEval,
 	control chan struct{}) {
@@ -194,7 +194,9 @@ func PoolManagerFitnessQuality(population TPopulation,
 	}
 	bestSolution := NewIndEval()
 	alcanzadaSolucion := false
+	cEvals := 0
 	alcanzadaSolucionF := func(ind TIndEval) {
+		// TODO: To precise "cEvals"
 		df(ind)
 		bestSolution = &ind
 		alcanzadaSolucion = true
@@ -239,6 +241,7 @@ func PoolManagerFitnessQuality(population TPopulation,
 						bestSolution = &indEvals[0]
 					}
 					p2Rep.Append(indEvals)
+					cEvals += len(indEvals)
 				}
 			case nInds := <-rResults:
 				if nInds != nil && len(nInds) > 0 {
@@ -256,7 +259,7 @@ func PoolManagerFitnessQuality(population TPopulation,
 		control1 <- struct{}{}
 		control2 <- struct{}{}
 		// fmt.Println("The End!")
-		res <- *bestSolution
+		res <- TFitnessResult{*bestSolution, cEvals}
 	}
 
 	for i := 0; i < eCount; i++ {

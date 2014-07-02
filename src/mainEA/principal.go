@@ -10,22 +10,32 @@ import (
 	//	"io/ioutil"
 )
 
+type TRes struct{
+	CEvals                int
+	InitPopSize           int
+	ChromSize             int
+}
+type TSolution struct{
+	Duration              int64
+	BestFit               int
+}
 type SeqRes struct{
-	CEvals   int
-	Duration int64
-	BestFit  int
+	TRes
+	TSolution
 }
 
 func testSeqCEvals() {
+	initialPopulationSize := 360
+	chromosomeSize := 8
 	pop := func() ea.TPopulation {
-		return genPop(360, 8)
+		return genPop(initialPopulationSize, chromosomeSize)
 	}
 	cEvals := 20
 	obj := ea.SeqCEvals{ea.SeqConf{pop, ea.MaxOne, 0.3}, ea.CEvalsConf{cEvals}}
 	initTime := time.Now()
 	solution := obj.Run()
 	endTime := time.Now()
-	res := SeqRes{cEvals, endTime.Sub(initTime).Nanoseconds(), solution.Fitness}
+	res := SeqRes{TRes{cEvals, initialPopulationSize, chromosomeSize}, TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
 	b, _ := json.Marshal(res)
 	//	ioutil.WriteFile(fName, b, 0x777)
 	//	fmt.Println("La mejor solución para 'SeqCEvals' es:", b)
@@ -35,14 +45,16 @@ func testSeqCEvals() {
 func testSeqFitnessQuality() {
 	var qf ea.TQualityF = func(v int) bool { return v > 7 }
 	var df ea.Tdo = func(i ea.TIndEval) {}
+	initialPopulationSize := 360
+	chromosomeSize := 8
 	pop := func() ea.TPopulation {
-		return genPop(360, 8)
+		return genPop(initialPopulationSize, chromosomeSize)
 	}
 	obj := ea.SeqFitnessQuality{ea.SeqConf{pop, ea.MaxOne, 0.3}, ea.FitnessQualityConf{qf, df}}
 	initTime := time.Now()
 	solution, cEvals := obj.Run()
 	endTime := time.Now()
-	res := SeqRes{cEvals, endTime.Sub(initTime).Nanoseconds(), solution.Fitness}
+	res := SeqRes{TRes{cEvals, initialPopulationSize, chromosomeSize}, TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
 	b, _ := json.Marshal(res)
 	fmt.Println(string(b))
 	//	fmt.Println("La mejor solución para 'SeqFitnessQuality' es: ", solution)
@@ -68,49 +80,67 @@ func genPop(n int, m int) ea.TPopulation {
 	return res
 }
 
-func testParCEvals() {
-	pop := func() ea.TPopulation {
-		return genPop(360, 8)
-	}
-	obj := ea.ParCEvals{ea.ParConf{ea.SeqConf{pop,
-		ea.MaxOne,
-		0.3}, 50, 50, 7, 5, 3},
-		ea.CEvalsConf{20000}}
-
-	solution := obj.Run()
-
-	fmt.Println("La mejor solución para 'ParCEvals' es:", solution)
+type ParRes struct{
+	TRes
+	MSizeEvals,
+	MSizeReps,
+	CEvaluators,
+	CReproducers,
+	CIslands int
+	TSolution
 }
 
-//func testParFitnessQuality() {
-//	var qf ea.TQualityF = func(v int) bool { return v > 7 }
-//	var df ea.Tdo = func(i ea.TIndEval) {}
-//
-//	pop := genPop(360, 8)
-//	obj := ea.ParFitnessQuality{ea.ParConf{ea.SeqConf{pop,
-//		ea.MaxOne,
-//		0.3}, 50, 50, 7, 5},
-//		ea.FitnessQualityConf{qf, df}}
-//
-//	solution := obj.Run()
-//
-//	fmt.Println("La mejor solución para 'ParFitnessQuality' es:", solution)
-//}
+func testParCEvals() {
+	initialPopulationSize := 360
+	chromosomeSize := 8
+	pop := func() ea.TPopulation {
+		return genPop(initialPopulationSize, chromosomeSize)
+	}
+	cEvals := 20000
+	MSizeEvals := 50
+	MSizeReps := 50
+	CEvaluators := 7
+	CReproducers := 5
+	CIslands := 3
+	obj := ea.ParCEvals{ea.ParConf{ea.SeqConf{pop, ea.MaxOne, 0.3}, MSizeEvals,
+		MSizeReps, CEvaluators, CReproducers, CIslands}, ea.CEvalsConf{cEvals}}
+
+	initTime := time.Now()
+	solution := obj.Run()
+	endTime := time.Now()
+	res := ParRes{TRes{cEvals, initialPopulationSize, chromosomeSize}, MSizeEvals, MSizeReps,
+		CEvaluators, CReproducers, CIslands, TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
+	b, _ := json.Marshal(res)
+	fmt.Println(string(b))
+
+	//	fmt.Println("La mejor solución para 'ParCEvals' es:", solution)
+}
+
 func testParFitnessQuality() {
 	var qf ea.TQualityF = func(v int) bool { return v > 7 }
 	var df ea.Tdo = func(i ea.TIndEval) {}
-
+	initialPopulationSize := 360
+	chromosomeSize := 8
 	pop := func() ea.TPopulation {
-		return genPop(360, 8)
+		return genPop(initialPopulationSize, chromosomeSize)
 	}
-	obj := ea.ParFitnessQuality{ea.ParConf{ea.SeqConf{pop,
-		ea.MaxOne,
-		0.3}, 50, 50, 7, 5, 3},
+	MSizeEvals := 50
+	MSizeReps := 50
+	CEvaluators := 7
+	CReproducers := 5
+	CIslands := 3
+	obj := ea.ParFitnessQuality{ea.ParConf{ea.SeqConf{pop, ea.MaxOne, 0.3},
+		MSizeEvals, MSizeReps, CEvaluators, CReproducers, CIslands},
 		ea.FitnessQualityConf{qf, df}}
+	initTime := time.Now()
+	solution, cEvals := obj.Run()
+	endTime := time.Now()
+	res := ParRes{TRes{cEvals, initialPopulationSize, chromosomeSize}, MSizeEvals, MSizeReps,
+		CEvaluators, CReproducers, CIslands, TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
+	b, _ := json.Marshal(res)
+	fmt.Println(string(b))
 
-	solution := obj.Run()
-
-	fmt.Println("La mejor solución para 'ParFitnessQuality' es:", solution)
+	//	fmt.Println("La mejor solución para 'ParFitnessQuality' es:", solution)
 }
 
 func main() {
@@ -119,6 +149,6 @@ func main() {
 	testSeqCEvals()
 	testSeqFitnessQuality()
 
-	//	testParCEvals()
-	//	testParFitnessQuality()
+	testParCEvals()
+	testParFitnessQuality()
 }

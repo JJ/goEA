@@ -32,6 +32,11 @@ type TIndEval struct {
 	Fitness int
 }
 
+type TFitnessResult struct {
+	TIndEval
+	CEvals int
+}
+
 func NewIndEval() *TIndEval {
 	return &TIndEval{nil, -1}
 }
