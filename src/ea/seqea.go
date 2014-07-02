@@ -29,7 +29,7 @@ func (s *SeqCEvals) Run() TIndEval {
 }
 
 // Run is the method of SeqFitnessQuality to find the solution by the fitness quality criteria.
-func (s *SeqFitnessQuality) Run() TIndEval {
+func (s *SeqFitnessQuality) Run() (TIndEval, int) {
 	population := s.GetPopulation()
 	p2Eval := make(TPopulation, len(population))
 	copy(p2Eval, population)
@@ -39,6 +39,7 @@ func (s *SeqFitnessQuality) Run() TIndEval {
 		alcanzadaSolucion = true
 	}
 	iEvals := Evaluate(p2Eval, s.FitnessF, s.QualityF, alcanzadaSolucionF)
+	cEvals := len(iEvals)
 	sort.Sort(iEvals)
 	for !alcanzadaSolucion {
 		lenSubPop := len(iEvals)
@@ -59,8 +60,9 @@ func (s *SeqFitnessQuality) Run() TIndEval {
 		}
 		p2Eval = nInds
 		iEvals = Evaluate(p2Eval, s.FitnessF, s.QualityF, alcanzadaSolucionF)
+		cEvals += len(iEvals)
 		sort.Sort(iEvals)
 	}
 
-	return iEvals[0]
+	return iEvals[0], cEvals
 }

@@ -5,21 +5,31 @@ import (
 	"fmt"
 	"math/rand"
 	"runtime"
+	"time"
+	"encoding/json"
+	//	"io/ioutil"
 )
+
+type SeqRes struct{
+	CEvals   int
+	Duration int64
+	BestFit  int
+}
 
 func testSeqCEvals() {
 	pop := func() ea.TPopulation {
 		return genPop(360, 8)
 	}
-	obj := ea.SeqCEvals{ea.SeqConf{pop,
-		ea.MaxOne,
-		0.3},
-		ea.CEvalsConf{20}}
-
+	cEvals := 20
+	obj := ea.SeqCEvals{ea.SeqConf{pop, ea.MaxOne, 0.3}, ea.CEvalsConf{cEvals}}
+	initTime := time.Now()
 	solution := obj.Run()
-
-	fmt.Println("La mejor solución para 'SeqCEvals' es:", solution)
-
+	endTime := time.Now()
+	res := SeqRes{cEvals, endTime.Sub(initTime).Nanoseconds(), solution.Fitness}
+	b, _ := json.Marshal(res)
+	//	ioutil.WriteFile(fName, b, 0x777)
+	//	fmt.Println("La mejor solución para 'SeqCEvals' es:", b)
+	fmt.Println(string(b))
 }
 
 func testSeqFitnessQuality() {
@@ -28,16 +38,14 @@ func testSeqFitnessQuality() {
 	pop := func() ea.TPopulation {
 		return genPop(360, 8)
 	}
-	obj := ea.SeqFitnessQuality{
-		ea.SeqConf{pop,
-			ea.MaxOne,
-			0.3},
-		ea.FitnessQualityConf{qf, df}}
-
-	solution := obj.Run()
-
-	fmt.Println("La mejor solución para 'SeqFitnessQuality' es: ", solution)
-
+	obj := ea.SeqFitnessQuality{ea.SeqConf{pop, ea.MaxOne, 0.3}, ea.FitnessQualityConf{qf, df}}
+	initTime := time.Now()
+	solution, cEvals := obj.Run()
+	endTime := time.Now()
+	res := SeqRes{cEvals, endTime.Sub(initTime).Nanoseconds(), solution.Fitness}
+	b, _ := json.Marshal(res)
+	fmt.Println(string(b))
+	//	fmt.Println("La mejor solución para 'SeqFitnessQuality' es: ", solution)
 }
 
 func genIndividual(n int) ea.TIndividual {
@@ -111,7 +119,6 @@ func main() {
 	testSeqCEvals()
 	testSeqFitnessQuality()
 
-	testParCEvals()
-	testParFitnessQuality()
-
+	//	testParCEvals()
+	//	testParFitnessQuality()
 }
