@@ -32,6 +32,7 @@ func NewMaxSATProblem(configFile string, instanceFileName string) *MaxSATProblem
 	clauseLength, _ := strconv.Atoi(f1[len(f1) - 1])
 	varsCount, _ := strconv.Atoi(f2[2])
 	clausesCount, _ := strconv.Atoi(f2[3])
+	m.ChromosomeSize = varsCount
 	var clauses [][]TVarValue
 	clauses = make([][]TVarValue, 0)
 	i := 8
