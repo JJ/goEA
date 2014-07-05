@@ -3,13 +3,12 @@ package ea
 import (
 	"math/rand"
 	"sort"
-	"fmt"
+	//	"fmt"
 )
 
 // Run is the method of SeqCEvals to find the solution by the amount of evaluations criteria.
 func (s *SeqCEvals) Run() TIndEval {
 	population := s.GetPopulation()
-	fmt.Println("Comenzando con", len(population), "para hacer", s.CEvals, "evaluaciones.")
 	p2Eval := make(TPopulation, len(population))
 	copy(p2Eval, population)
 

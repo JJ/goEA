@@ -26,15 +26,69 @@ type TFitnessFunc func(TIndividual) int
 type TFSelPop2Eval func() TPopulation
 type TFSelPop2Rep func() TIndsEvaluated
 
+
+type TRes struct{
+	NumberOfEvals    int
+	//	PopSize        int
+	//	ChromosomeSize int
+}
+type TSolution struct{
+	EvolutionDelay int64
+	BestSol        int
+}
+type SeqRes struct{
+	TRes
+	TSolution
+}
+
+type ParRes struct{
+	TRes
+	EvaluatorsCapacity,
+	ReproducersCapacity,
+	EvaluatorsCount,
+	ReproducersCount,
+	IslandsCount,
+	Emigrations          int
+	TSolution
+}
+
+type Data struct{
+	EvaluatorsCount,
+	ReproducersCount,
+	EvaluatorsCapacity,
+	ReproducersCapacity,
+	Evaluations,
+	PopSize,
+	ChromosomeSize,
+	IslandsCount         int
+	PMutation            float32
+}
+
+type Problem struct{
+	problemConfig *Data
+}
+
+type IProblem interface {
+	QualityFitnessFunction(v int) bool
+	DoWhenQualityFitnessTrue(i TIndEval)
+	FitnessFunction(ind TIndividual) int
+}
+
 // IndEval: an individual and its fitness.
 type TIndEval struct {
 	Ind     TIndividual
 	Fitness int
 }
 
-type TFitnessResult struct {
+type TPoolFitnessQualityResult struct {
 	TIndEval
-	CEvals int
+	CEvals      int
+	Emigrations int
+}
+
+type TPoolCEvalsResult struct {
+	TIndEval
+	Emigrations int
 }
 
 func NewIndEval() *TIndEval {

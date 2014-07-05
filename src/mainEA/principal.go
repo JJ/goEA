@@ -3,6 +3,7 @@ package main
 import (
 	"ea"
 	"fmt"
+	"os"
 	"runtime"
 	"encoding/json"
 )
@@ -31,7 +32,7 @@ func maxOneTests() {
 }
 
 func maxSATTests() {
-	obj := ea.NewMaxSATProblem("configMaxSAT.json", "f:/Mis Documentos/PhD/src/sclEA/Pool-Island/problems/uf100-01.cnf")
+	obj := ea.NewMaxSATProblem("configMaxSAT.json", "./problems/uf100-01.cnf")
 	fmt.Println("SeqCEvals")
 	res := obj.RunSeqCEvals()
 	b, _ := json.Marshal(*res)
@@ -55,7 +56,37 @@ func maxSATTests() {
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	//	maxOneTests()
-	maxSATTests()
+	testing := false
+	if testing {
+		maxOneTests()
+		maxSATTests()
+		os.Exit(0)
+	}
+	obj := ea.NewMaxSATProblem("configMaxSAT.json", "./problems/uf100-01.cnf")
+	generalAction := func() {
+		res := obj.RunSeqCEvals()
+		b, _ := json.Marshal(*res)
+		fmt.Println(string(b))
+	}
+	if len(os.Args) < 2 {
+		generalAction()
+	}else {
+		switch os.Args[1]{
+		case "seqfq":
+			res := obj.RunSeqFitnessQuality()
+			b, _ := json.Marshal(*res)
+			fmt.Println(string(b))
+		case "parce":
+			res := obj.RunParCEvals()
+			b, _ := json.Marshal(*res)
+			fmt.Println(string(b))
+		case "parfq":
+			res := obj.RunParFitnessQuality()
+			b, _ := json.Marshal(*res)
+			fmt.Println(string(b))
+		default:
+			generalAction()
+		}
+	}
 }
 

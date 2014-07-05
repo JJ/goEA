@@ -1,7 +1,7 @@
 package ea
 
 import (
-	//"fmt"
+	"fmt"
 	"math/rand"
 )
 
@@ -67,7 +67,10 @@ func ParentsSelector(pop TPopulation, n int) []Pair {
 // Crossover function.
 func Crossover(p Pair) (a TIndividual, b TIndividual) {
 	indLength := len(p.a)
-
+	if len(p.a) != len(p.b) {
+		fmt.Println(p.a, len(p.a))
+		fmt.Println(p.b, len(p.b))
+	}
 	cPoint := rand.Intn(indLength - 1) + 1
 	res1 := make(TIndividual, indLength)
 	res2 := make(TIndividual, indLength)

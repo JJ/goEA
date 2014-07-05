@@ -5,6 +5,6 @@
     "ReproducersCapacity": 50,
     "PopSize": 1024,
     "Evaluations": 5000,
-    "IslandsCount": 3,
+    "IslandsCount": 2,
     "PMutation": 0.3
 }

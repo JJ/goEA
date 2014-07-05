@@ -8,20 +8,6 @@ import (
 	"strings"
 )
 
-type TRes struct{
-	Evaluations    int
-	PopSize        int
-	ChromosomeSize int
-}
-type TSolution struct{
-	Duration int64
-	BestFit  int
-}
-type SeqRes struct{
-	TRes
-	TSolution
-}
-
 func genIndividual(n int) TIndividual {
 	res := make(TIndividual, n)
 	for i, _ := range res {
@@ -42,28 +28,6 @@ func genPop(n int, m int) TPopulation {
 	return res
 }
 
-type ParRes struct{
-	TRes
-	EvaluatorsCapacity,
-	ReproducersCapacity,
-	EvaluatorsCount,
-	ReproducersCount,
-	IslandsCount int
-	TSolution
-}
-
-type Data struct{
-	EvaluatorsCount,
-	ReproducersCount,
-	EvaluatorsCapacity,
-	ReproducersCapacity,
-	Evaluations,
-	PopSize,
-	ChromosomeSize,
-	IslandsCount         int
-	PMutation            float32
-}
-
 type MaxOneProblem struct{
 	Problem
 }
@@ -76,16 +40,6 @@ func NewMaxOneProblem(configFile string) *MaxOneProblem {
 	return &MaxOneProblem{Problem{&m}}
 }
 
-type Problem struct{
-	problemConfig *Data
-}
-
-type IProblem interface {
-	QualityFitnessFunction(v int) bool
-	DoWhenQualityFitnessTrue(i TIndEval)
-	FitnessFunction(ind TIndividual) int
-}
-
 func (self *Problem) GenInitPop() TPopulation {
 	return genPop(self.problemConfig.PopSize, self.problemConfig.ChromosomeSize)
 }
@@ -96,7 +50,7 @@ func (self *Problem) runSeqCEvals(fitnessFunction TFitnessFunc) *SeqRes {
 	initTime := time.Now()
 	solution := obj.Run()
 	endTime := time.Now()
-	return &SeqRes{TRes{self.problemConfig.Evaluations, self.problemConfig.PopSize, self.problemConfig.ChromosomeSize},
+	return &SeqRes{TRes{self.problemConfig.Evaluations},
 		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
 }
 
@@ -106,7 +60,7 @@ func (self *Problem) runSeqFitnessQuality(fitnessFunction TFitnessFunc, qf TQual
 	initTime := time.Now()
 	solution, cEvals := obj.Run()
 	endTime := time.Now()
-	return &SeqRes{TRes{cEvals, self.problemConfig.PopSize, self.problemConfig.ChromosomeSize},
+	return &SeqRes{TRes{cEvals},
 		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
 }
 
@@ -147,8 +101,10 @@ func (self *Problem) runParCEvals(fitnessFunction TFitnessFunc) *ParRes {
 	initTime := time.Now()
 	solution := obj.Run()
 	endTime := time.Now()
-	return &ParRes{TRes{self.problemConfig.Evaluations, self.problemConfig.PopSize, self.problemConfig.ChromosomeSize}, self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
-		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount, TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
+
+	return &ParRes{TRes{self.problemConfig.Evaluations}, self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
+		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount, solution.Emigrations,
+		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
 }
 
 func (self *Problem) runParFitnessQuality(fitnessFunction TFitnessFunc, qf TQualityF, df Tdo) *ParRes {
@@ -157,8 +113,9 @@ func (self *Problem) runParFitnessQuality(fitnessFunction TFitnessFunc, qf TQual
 		self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount},
 		FitnessQualityConf{qf, df}}
 	initTime := time.Now()
-	solution, cEvals := obj.Run()
+	solution := obj.Run()
 	endTime := time.Now()
-	return &ParRes{TRes{cEvals, self.problemConfig.PopSize, self.problemConfig.ChromosomeSize}, self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
-		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount, TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
+	return &ParRes{TRes{solution.CEvals}, self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
+		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount, solution.Emigrations,
+		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
 }
