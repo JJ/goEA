@@ -9,7 +9,7 @@ type IDo interface {
 }
 
 // TIndividual represents a chromosome, normaly a char sequence.
-type TIndividual []rune
+type TIndividual []byte
 
 // TPopulation is a sequence of TIndividual.
 type TPopulation []TIndividual

@@ -2,10 +2,10 @@ package main
 
 import (
 	"ea"
+	"encoding/json"
 	"fmt"
 	"os"
 	"runtime"
-	"encoding/json"
 )
 
 func maxOneTests() {
@@ -63,6 +63,7 @@ func main() {
 		os.Exit(0)
 	}
 	obj := ea.NewMaxSATProblem("configMaxSAT.json", "./problems/uf100-01.cnf")
+	//	fmt.Println(obj.ToString()) // To check the problem instance.
 	generalAction := func() {
 		res := obj.RunSeqCEvals()
 		b, _ := json.Marshal(*res)
@@ -70,8 +71,8 @@ func main() {
 	}
 	if len(os.Args) < 2 {
 		generalAction()
-	}else {
-		switch os.Args[1]{
+	} else {
+		switch os.Args[1] {
 		case "seqfq":
 			res := obj.RunSeqFitnessQuality()
 			b, _ := json.Marshal(*res)
@@ -89,4 +90,3 @@ func main() {
 		}
 	}
 }
-

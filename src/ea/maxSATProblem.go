@@ -16,7 +16,7 @@ type MaxSATProblem struct{
 	clauses      [][]TVarValue
 }
 type TVarValue struct{
-	value rune
+	value byte
 	pos   int
 }
 
@@ -57,6 +57,17 @@ func NewMaxSATProblem(configFile string, instanceFileName string) *MaxSATProblem
 	return &MaxSATProblem{Problem{&m}, clauseLength, varsCount, clausesCount, clauses}
 }
 
+func (self *MaxSATProblem) ToString() string {
+	res := ""
+	for _, v := range self.clauses {
+		t := ""
+		for _, v1 := range v {
+			t += strconv.Itoa(v1.pos)+"."+strconv.Itoa(int(v1.value))+" "
+		}
+		res += t+"\n"
+	}
+	return res
+}
 func (self *MaxSATProblem) QualityFitnessFunction(v int) bool {
 	return v > 395
 }

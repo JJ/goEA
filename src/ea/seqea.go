@@ -20,8 +20,7 @@ func (s *SeqCEvals) Run() TIndEval {
 	sort.Sort(IndEvals)
 
 	for ce < s.CEvals {
-		reproductionResults := Reproduce(IndEvals, s.PMutation)
-		p2Eval = reproductionResults
+		p2Eval = Reproduce(IndEvals, s.PMutation)
 		IndEvals = Evaluate(p2Eval, s.FitnessF, qf, df)
 		sort.Sort(IndEvals)
 		ce += len(IndEvals)

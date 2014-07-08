@@ -3,8 +3,8 @@ package ea
 import (
 	//	"fmt"
 	//	"syscall"
-	"sort"
 	"math/rand"
+	"sort"
 )
 
 func (s *ParCEvals) Run() TPoolCEvalsResult {

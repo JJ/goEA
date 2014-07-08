@@ -93,8 +93,8 @@ func Mutate(ind TIndividual) {
 	ind[pos] = changeGen(ind[pos])
 }
 
-func changeGen(i rune) rune {
-	var res rune = 0
+func changeGen(i byte) byte {
+	var res byte = 0
 	if i == 0 {
 		res = 1
 	}
