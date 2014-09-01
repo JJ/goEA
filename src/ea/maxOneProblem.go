@@ -11,11 +11,7 @@ import (
 func genIndividual(n int) TIndividual {
 	res := make(TIndividual, n)
 	for i, _ := range res {
-		if rand.Intn(100)%2 == 0 {
-			res[i] = 1
-		} else {
-			res[i] = 0
-		}
+		res[i] = rand.Intn(2)
 	}
 	return res
 }

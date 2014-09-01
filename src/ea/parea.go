@@ -284,7 +284,6 @@ func (job EJob) Do() {
 	if job.Population != nil && len(job.Population) > 0 {
 		IndEvals := Evaluate(job.Population, job.FitnessF, job.QualityF, job.DoFunc)
 		sort.Sort(IndEvals)
-		//		fmt.Println("Evaluados:", len(IndEvals))
 		job.results <- IndEvals
 	} else {
 		job.results <- nil

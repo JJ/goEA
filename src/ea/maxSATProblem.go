@@ -62,14 +62,14 @@ func (self *MaxSATProblem) ToString() string {
 	for _, v := range self.clauses {
 		t := ""
 		for _, v1 := range v {
-			t += strconv.Itoa(v1.pos)+"."+strconv.Itoa(int(v1.value))+" "
+			t += strconv.Itoa(v1.pos) + "." + strconv.Itoa(int(v1.value)) + " "
 		}
 		res += t+"\n"
 	}
 	return res
 }
 func (self *MaxSATProblem) QualityFitnessFunction(v int) bool {
-	return v > 395
+	return v > 405
 }
 func (self *MaxSATProblem) DoWhenQualityFitnessTrue(i TIndEval) {}
 func (self *MaxSATProblem) FitnessFunction(ind TIndividual) int {

@@ -199,7 +199,6 @@ func (self *evalPool) ExtractElements(mSizeEval int) TPopulation {
 		}
 		res = append(TPopulation{}, self.pool[:nSend2Eval]...)
 		self.pool = self.pool[nSend2Eval:]
-		//		fmt.Println(self.name, nSend2Eval, "-")
 	}
 	return res
 }
@@ -208,7 +207,6 @@ func (self *evalPool) Append(nInds TPopulation) {
 	self.mutex.Lock()
 	defer self.mutex.Unlock()
 	self.pool = append(self.pool, nInds...)
-	//	fmt.Println(self.name, len(nInds), "+")
 }
 
 func (self *evalPool) Length() int {
@@ -291,7 +289,6 @@ func (self *repPool) Append(nInds TIndsEvaluated) {
 		i++
 	}
 	self.pool = a
-	//	fmt.Println(self.name, len(nInds), "+")
 }
 
 func (self *repPool) Length() int {
