@@ -11,8 +11,9 @@ import (
 
 func genIndividual(n int) TIndividual {
 	res := make(TIndividual, n)
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i, _ := range res {
-		res[i] = byte(rand.Intn(2))
+		res[i] = byte(r.Intn(2))
 	}
 	return res
 }
