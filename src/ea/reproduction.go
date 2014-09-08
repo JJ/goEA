@@ -1,7 +1,8 @@
 package ea
 
 import (
-//	"fmt"
+	//	"fmt"
+	"time"
 	"math/rand"
 )
 
@@ -18,8 +19,9 @@ func Reproduce(iEvals TIndsEvaluated, pMutation float32) TPopulation {
 	if lenSubPop%2 == 1 {
 		nInds = append(nInds, iEvals[0].Ind)
 	}
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for _, ind := range nInds {
-		if rand.Float32() < pMutation {
+		if r.Float32() < pMutation {
 			Mutate(ind)
 		}
 	}
@@ -48,31 +50,30 @@ func EnhanceParents(pop TIndsEvaluated) TPopulation {
 
 // ParentsSelector gets n pairs for reproduction.
 func ParentsSelector(pop TPopulation, n int) []Pair {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	res := make([]Pair, n)
 	nPar := len(pop)
 	for i := 0; i < n; i++ {
-		m1 := rand.Intn(nPar)
-		m2 := rand.Intn(nPar)
-
+		m1 := r.Intn(nPar)
+		m2 := r.Intn(nPar)
+		for pop[m1].Equals(pop[m2]) {
+			m2 = r.Intn(nPar)
+		}
 		i1 := make(TIndividual, len(pop[m1]))
 		copy(i1, pop[m1])
 		i2 := make(TIndividual, len(pop[m2]))
 		copy(i2, pop[m2])
-
 		res[i] = Pair{i1, i2}
 	}
+	//	fmt.Println("yes")
 	return res
 }
 
 // Crossover function.
 func Crossover(p Pair) (a TIndividual, b TIndividual) {
 	indLength := len(p.a)
-//	if len(p.a) != len(p.b) {
-//		fmt.Println("Error!!!")
-//		fmt.Println(p.a, len(p.a))
-//		fmt.Println(p.b, len(p.b))
-//	}
-	cPoint := rand.Intn(indLength - 1) + 1
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	cPoint := r.Intn(indLength - 1) + 1
 	res1 := make(TIndividual, indLength)
 	res2 := make(TIndividual, indLength)
 
@@ -90,7 +91,8 @@ func Crossover(p Pair) (a TIndividual, b TIndividual) {
 
 // Mutate one chromosome of the individual.
 func Mutate(ind TIndividual) {
-	pos := rand.Intn(len(ind))
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	pos := r.Intn(len(ind))
 	ind[pos] = changeGen(ind[pos])
 }
 

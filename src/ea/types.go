@@ -2,6 +2,7 @@ package ea
 
 import (
 	"sync"
+//	"fmt"
 )
 
 type IDo interface {
@@ -10,6 +11,19 @@ type IDo interface {
 
 // TIndividual represents a chromosome, normaly a char sequence.
 type TIndividual []byte
+
+func (self TIndividual) Equals(that TIndividual) bool {
+	if len(self) != len(that) {
+		return false
+	}
+	res := true
+	for i := 0; i < len(self) && res; i++ {
+		if self[i] != that[i] {
+			res = false
+		}
+	}
+	return res
+}
 
 // TPopulation is a sequence of TIndividual.
 type TPopulation []TIndividual
@@ -46,9 +60,7 @@ type ParRes struct{
 	EvaluatorsCapacity,
 	ReproducersCapacity,
 	EvaluatorsCount,
-	ReproducersCount,
-	IslandsCount,
-	Emigrations          int
+	ReproducersCount     int
 	TSolution
 }
 
@@ -59,8 +71,7 @@ type Data struct{
 	ReproducersCapacity,
 	Evaluations,
 	PopSize,
-	ChromosomeSize,
-	IslandsCount         int
+	ChromosomeSize       int
 	PMutation            float32
 }
 
@@ -88,7 +99,7 @@ type TPoolFitnessQualityResult struct {
 
 type TPoolCEvalsResult struct {
 	TIndEval
-	Emigrations int
+	Evaluations int
 }
 
 func NewIndEval() *TIndEval {
@@ -139,8 +150,7 @@ type ParConf struct {
 	MSizeEvals,
 	MSizeReps,
 	CEvaluators,
-	CReproducers,
-	CIslands int
+	CReproducers int
 }
 
 type ParCEvals struct {

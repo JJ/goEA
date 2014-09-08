@@ -94,14 +94,6 @@ func (self *MaxSATProblem) RunSeqCEvals() *SeqRes {
 	return self.Problem.runSeqCEvals(self.FitnessFunction)
 }
 
-func (self *MaxSATProblem) RunSeqFitnessQuality() *SeqRes {
-	return self.Problem.runSeqFitnessQuality(self.FitnessFunction, self.QualityFitnessFunction, self.DoWhenQualityFitnessTrue)
-}
-
 func (self *MaxSATProblem) RunParCEvals() *ParRes {
 	return self.Problem.runParCEvals(self.FitnessFunction)
-}
-
-func (self *MaxSATProblem) RunParFitnessQuality() *ParRes {
-	return self.Problem.runParFitnessQuality(self.FitnessFunction, self.QualityFitnessFunction, self.DoWhenQualityFitnessTrue)
 }
