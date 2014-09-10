@@ -9,8 +9,7 @@ import (
 // Reproduce is the reproduction routine.
 func Reproduce(iEvals TIndsEvaluated, pMutation float32) TPopulation {
 	lenSubPop := len(iEvals)
-	p2Rep := EnhanceParents(iEvals)
-	parents := ParentsSelector(p2Rep, lenSubPop/2)
+	parents := ParentsSelector(iEvals, lenSubPop/2)
 	nInds := make(TPopulation, 0)
 	for _, ind := range parents {
 		i1, i2 := Crossover(ind)
@@ -28,44 +27,33 @@ func Reproduce(iEvals TIndsEvaluated, pMutation float32) TPopulation {
 	return nInds
 }
 
-// EnhanceParents get [n(n+1)/2] potentials parents. n = len(pop).
-// Repeate n times the best individual, n-1 times the second one, ...
-// A simple strategy, to analyze a better one.
-func EnhanceParents(pop TIndsEvaluated) TPopulation {
-	n := len(pop)
-	res := make(TPopulation, n*(n+1)/2)
-	indx := 0
-	for i, indEval := range pop {
-		for j := 0; j < n-i; j++ {
-			if true { // TODO: usar probabilidad de crossover
-				rInd := make(TIndividual, len(indEval.Ind))
-				copy(rInd, indEval.Ind)
-				res[indx] = rInd
-				indx++
-			}
-		}
-	}
-	return res
-}
-
 // ParentsSelector gets n pairs for reproduction.
-func ParentsSelector(pop TPopulation, n int) []Pair {
+func ParentsSelector(pop TIndsEvaluated, n int) []Pair {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	res := make([]Pair, n)
 	nPar := len(pop)
 	for i := 0; i < n; i++ {
-		m1 := r.Intn(nPar)
-		m2 := r.Intn(nPar)
-		for pop[m1].Equals(pop[m2]) {
-			m2 = r.Intn(nPar)
+		n1 := r.Intn(nPar)
+		n2 := r.Intn(nPar)
+		n3 := r.Intn(nPar)
+		i1 := TIndEval{pop[n1].Ind, pop[n1].Fitness}
+		i2 := TIndEval{pop[n2].Ind, pop[n2].Fitness}
+		i3 := TIndEval{pop[n3].Ind, pop[n3].Fitness}
+
+		if (i1.Fitness < i2.Fitness) {
+			if (i1.Fitness < i3.Fitness) {
+				res[i] = Pair{i2.Ind, i3.Ind}
+			} else {
+				res[i] = Pair{i2.Ind, i1.Ind}
+			}
+		} else {
+			if (i2.Fitness < i3.Fitness) {
+				res[i] = Pair{i1.Ind, i3.Ind}
+			} else {
+				res[i] = Pair{i2.Ind, i1.Ind}
+			}
 		}
-		i1 := make(TIndividual, len(pop[m1]))
-		copy(i1, pop[m1])
-		i2 := make(TIndividual, len(pop[m2]))
-		copy(i2, pop[m2])
-		res[i] = Pair{i1, i2}
 	}
-	//	fmt.Println("yes")
 	return res
 }
 
