@@ -69,9 +69,8 @@ func (self *MaxSATProblem) ToString() string {
 	return res
 }
 func (self *MaxSATProblem) QualityFitnessFunction(v int) bool {
-	return v > 405
+	return v > 420
 }
-func (self *MaxSATProblem) DoWhenQualityFitnessTrue(i TIndEval) {}
 func (self *MaxSATProblem) FitnessFunction(ind TIndividual) int {
 	res := 0
 	for _, c := range self.clauses {
@@ -96,4 +95,12 @@ func (self *MaxSATProblem) RunSeqCEvals() *SeqRes {
 
 func (self *MaxSATProblem) RunParCEvals() *ParRes {
 	return self.Problem.runParCEvals(self.FitnessFunction)
+}
+
+func (self *MaxSATProblem) RunSeqFitnessQuality() *SeqRes {
+	return self.Problem.runSeqFitnessQuality(self.FitnessFunction, self.QualityFitnessFunction)
+}
+
+func (self *MaxSATProblem) RunParFitnessQuality() *ParRes {
+	return self.Problem.runParFitnessQuality(self.FitnessFunction, self.QualityFitnessFunction)
 }

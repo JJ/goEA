@@ -94,7 +94,6 @@ type TIndEval struct {
 type TPoolFitnessQualityResult struct {
 	TIndEval
 	CEvals      int
-	Emigrations int
 }
 
 type TPoolCEvalsResult struct {
@@ -132,7 +131,6 @@ type TQualityF func(int) bool
 
 type FitnessQualityConf struct {
 	QualityF TQualityF
-	Do       Tdo
 }
 
 type SeqCEvals struct {

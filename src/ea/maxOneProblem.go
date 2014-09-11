@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"time"
 	"strings"
-//	"fmt"
+	//	"fmt"
 )
 
 func genIndividual(n int) TIndividual {
@@ -52,11 +52,19 @@ func (self *Problem) runSeqCEvals(fitnessFunction TFitnessFunc) *SeqRes {
 		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
 }
 
+func (self *Problem) runSeqFitnessQuality(fitnessFunction TFitnessFunc, qf TQualityF) *SeqRes {
+	obj := SeqFitnessQuality{SeqConf{self.GenInitPop, fitnessFunction, self.problemConfig.PMutation} ,
+		FitnessQualityConf{qf}}
+	initTime := time.Now()
+	solution, ce := obj.Run()
+	endTime := time.Now()
+	return &SeqRes{TRes{ce},
+		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
+}
 
 func (self *MaxOneProblem) QualityFitnessFunction(v int) bool {
 	return v > self.problemConfig.ChromosomeSize-2
 }
-func (self *MaxOneProblem) DoWhenQualityFitnessTrue(i TIndEval) {}
 func (self *MaxOneProblem) FitnessFunction(ind TIndividual) int {
 	res := 0
 	for _, e := range ind {
@@ -81,7 +89,7 @@ func (self *Problem) runParCEvals(fitnessFunction TFitnessFunc) *ParRes {
 		self.problemConfig.ReproducersCount}, CEvalsConf{self.problemConfig.Evaluations}}
 	resChan := make(chan ParRes, 1)
 	initTime := time.Now()
-	obj.Run(func(res TPoolCEvalsResult){
+	obj.Run(func(res TPoolCEvalsResult) {
 		endTime := time.Now()
 		resChan <- ParRes{TRes{res.Evaluations},
 		self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
@@ -91,3 +99,33 @@ func (self *Problem) runParCEvals(fitnessFunction TFitnessFunc) *ParRes {
 	res := <-resChan
 	return &res
 }
+
+func (self *Problem) runParFitnessQuality(fitnessFunction TFitnessFunc, qf TQualityF) *ParRes {
+	obj := ParFitnessQuality{ParConf{SeqConf{self.GenInitPop, fitnessFunction, self.problemConfig.PMutation} ,
+		self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity, self.problemConfig.EvaluatorsCount,
+		self.problemConfig.ReproducersCount},
+		FitnessQualityConf{qf}}
+
+	resChan := make(chan ParRes, 1)
+	initTime := time.Now()
+	obj.Run(func(res TPoolFitnessQualityResult) {
+		endTime := time.Now()
+		resChan <- ParRes{TRes{res.CEvals},
+		self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
+		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount,
+		TSolution{endTime.Sub(initTime).Nanoseconds(), res.Fitness}}
+	})
+	res := <-resChan
+	return &res
+}
+
+//func (self *Problem) runSeqFitnessQuality(fitnessFunction TFitnessFunc, qf TQualityF, df Tdo) *SeqRes {
+//	obj := SeqFitnessQuality{SeqConf{self.GenInitPop, fitnessFunction, self.problemConfig.PMutation} ,
+//		FitnessQualityConf{qf, df}}
+//	initTime := time.Now()
+//	solution, cEvals := obj.Run()
+//	endTime := time.Now()
+//	return &SeqRes{TRes{cEvals},
+//		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
+//}
+

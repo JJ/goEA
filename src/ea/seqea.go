@@ -1,7 +1,7 @@
 package ea
 
 import (
-//	"math/rand"
+	//	"math/rand"
 	"sort"
 	//	"fmt"
 )
@@ -26,4 +26,25 @@ func (s *SeqCEvals) Run() (*TIndEval, int) {
 		}
 	}
 	return bestSolution, ce
+}
+
+// Run is the method of SeqFitnessQuality to find the solution by the fitness quality criteria.
+func (s *SeqFitnessQuality) Run() (TIndEval, int) {
+	population := s.GetPopulation()
+	p2Eval := make(TPopulation, len(population))
+	copy(p2Eval, population)
+	alcanzadaSolucion := false
+	bestSolution := NewIndEval()
+	Do := func(ind TIndEval) {
+		bestSolution = &ind
+		alcanzadaSolucion = true
+	}
+	ce := 0
+	for !alcanzadaSolucion {
+		IndEvals := Evaluate(p2Eval, s.FitnessF, s.QualityF, Do)
+		sort.Sort(IndEvals)
+		ce += len(IndEvals)
+		p2Eval = Reproduce(IndEvals, s.PMutation)
+	}
+	return *bestSolution, ce
 }

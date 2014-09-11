@@ -23,11 +23,19 @@ func main() {
 		generalAction()
 	} else {
 		switch os.Args[1] {
-		case "par":
+		case "pce":
 			res := obj.RunParCEvals()
 			b, _ := json.Marshal(*res)
 			fmt.Println(string(b))
-		default:// case "seq":
+		case "sfq":
+			res := obj.RunSeqFitnessQuality()
+			b, _ := json.Marshal(*res)
+			fmt.Println(string(b))
+		case "pfq":
+			res := obj.RunParFitnessQuality()
+			b, _ := json.Marshal(*res)
+			fmt.Println(string(b))
+		default:// case "sce":
 			generalAction()
 		}
 	}
