@@ -1,1 +1,1 @@
-{"PMutation": 0.3, "PopSize": 64, "EvaluatorsCount": 6, "Evaluations": 5000, "ReproducersCount": 2, "EvaluatorsCapacity": 8, "ReproducersCapacity": 8}
+{"PopSize": 1024, "EvaluatorsCount": 30, "PMutation": 0.3, "ReproducersCapacity": 50, "ReproducersCount": 10, "Evaluations": 5000, "EvaluatorsCapacity": 50}
