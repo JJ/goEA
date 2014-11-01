@@ -11,7 +11,7 @@ import (
 func genIndividual(n int) TIndividual {
 	res := make(TIndividual, n)
 	for i, _ := range res {
-		res[i] = rand.Intn(2)
+		res[i] = byte(rand.Intn(2))
 	}
 	return res
 }
@@ -40,30 +40,9 @@ func (self *Problem) GenInitPop() TPopulation {
 	return genPop(self.problemConfig.PopSize, self.problemConfig.ChromosomeSize)
 }
 
-func (self *Problem) runSeqCEvals(fitnessFunction TFitnessFunc) *SeqRes {
-	obj := SeqCEvals{SeqConf{self.GenInitPop, fitnessFunction, self.problemConfig.PMutation},
-		CEvalsConf{self.problemConfig.Evaluations}}
-	initTime := time.Now()
-	solution := obj.Run()
-	endTime := time.Now()
-	return &SeqRes{TRes{self.problemConfig.Evaluations},
-		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
-}
-
-func (self *Problem) runSeqFitnessQuality(fitnessFunction TFitnessFunc, qf TQualityF, df Tdo) *SeqRes {
-	obj := SeqFitnessQuality{SeqConf{self.GenInitPop, fitnessFunction, self.problemConfig.PMutation}    ,
-		FitnessQualityConf{qf, df}}
-	initTime := time.Now()
-	solution, cEvals := obj.Run()
-	endTime := time.Now()
-	return &SeqRes{TRes{cEvals},
-		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
-}
-
 func (self *MaxOneProblem) QualityFitnessFunction(v int) bool {
 	return v > self.problemConfig.ChromosomeSize-2
 }
-func (self *MaxOneProblem) DoWhenQualityFitnessTrue(i TIndEval) {}
 func (self *MaxOneProblem) FitnessFunction(ind TIndividual) int {
 	res := 0
 	for _, e := range ind {
@@ -74,44 +53,25 @@ func (self *MaxOneProblem) FitnessFunction(ind TIndividual) int {
 	return res
 }
 
-func (self *MaxOneProblem) RunSeqCEvals() *SeqRes {
-	return self.Problem.runSeqCEvals(self.FitnessFunction)
+func (self *Problem) runSeq(fitnessFunction TFitnessFunc, qf TQualityF) *SequentialResult {
+	obj := SequentialProblem{self.GenInitPop, fitnessFunction, qf, self.problemConfig.Evaluations, self.problemConfig.PMutation}
+	initTime := time.Now()
+	solution, cEvals := obj.Run()
+	endTime := time.Now()
+	return &SequentialResult{endTime.Sub(initTime).Nanoseconds(), cEvals, solution.Fitness}
 }
 
-func (self *MaxOneProblem) RunSeqFitnessQuality() *SeqRes {
-	return self.Problem.runSeqFitnessQuality(self.FitnessFunction, self.QualityFitnessFunction, self.DoWhenQualityFitnessTrue)
-}
+func (self *Problem) runConcurrent(fitnessFunction TFitnessFunc, qf TQualityF) *ConcurrentResult {
+	obj := ConcurrentProblem{self.GenInitPop, fitnessFunction, self.problemConfig.PMutation,
+		self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
+		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount,
+		self.problemConfig.IslandsCount, qf, self.problemConfig.Evaluations}
 
-func (self *MaxOneProblem) RunParCEvals() *ParRes {
-	return self.Problem.runParCEvals(self.FitnessFunction)
-}
-
-func (self *MaxOneProblem) RunParFitnessQuality() *ParRes {
-	return self.Problem.runParFitnessQuality(self.FitnessFunction, self.QualityFitnessFunction, self.DoWhenQualityFitnessTrue)
-}
-
-func (self *Problem) runParCEvals(fitnessFunction TFitnessFunc) *ParRes {
-	obj := ParCEvals{ParConf{SeqConf{self.GenInitPop, fitnessFunction, self.problemConfig.PMutation}    ,
-		self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity, self.problemConfig.EvaluatorsCount,
-		self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount}, CEvalsConf{self.problemConfig.Evaluations}}
 	initTime := time.Now()
 	solution := obj.Run()
 	endTime := time.Now()
 
-	return &ParRes{TRes{self.problemConfig.Evaluations}, self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
-		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount, solution.Emigrations,
-		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
-}
-
-func (self *Problem) runParFitnessQuality(fitnessFunction TFitnessFunc, qf TQualityF, df Tdo) *ParRes {
-	obj := ParFitnessQuality{ParConf{SeqConf{self.GenInitPop, fitnessFunction, self.problemConfig.PMutation}    ,
-		self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity, self.problemConfig.EvaluatorsCount,
-		self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount},
-		FitnessQualityConf{qf, df}}
-	initTime := time.Now()
-	solution := obj.Run()
-	endTime := time.Now()
-	return &ParRes{TRes{solution.CEvals}, self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
-		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount, solution.Emigrations,
-		TSolution{endTime.Sub(initTime).Nanoseconds(), solution.Fitness}}
+	return &ConcurrentResult{solution.CEvals, self.problemConfig.EvaluatorsCapacity, self.problemConfig.ReproducersCapacity,
+		self.problemConfig.EvaluatorsCount, self.problemConfig.ReproducersCount, self.problemConfig.IslandsCount,
+		solution.Emigrations, endTime.Sub(initTime).Nanoseconds(), solution.Fitness}
 }

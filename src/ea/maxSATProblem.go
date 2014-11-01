@@ -62,16 +62,16 @@ func (self *MaxSATProblem) ToString() string {
 	for _, v := range self.clauses {
 		t := ""
 		for _, v1 := range v {
-			t += strconv.Itoa(v1.pos) + "." + strconv.Itoa(int(v1.value)) + " "
+			t += strconv.Itoa(v1.pos)+"."+strconv.Itoa(int(v1.value))+" "
 		}
 		res += t+"\n"
 	}
 	return res
 }
 func (self *MaxSATProblem) QualityFitnessFunction(v int) bool {
-	return v > 405
+	return v >= 424
 }
-func (self *MaxSATProblem) DoWhenQualityFitnessTrue(i TIndEval) {}
+
 func (self *MaxSATProblem) FitnessFunction(ind TIndividual) int {
 	res := 0
 	for _, c := range self.clauses {
@@ -90,18 +90,10 @@ func (self *MaxSATProblem) FitnessFunction(ind TIndividual) int {
 	return res
 }
 
-func (self *MaxSATProblem) RunSeqCEvals() *SeqRes {
-	return self.Problem.runSeqCEvals(self.FitnessFunction)
+func (self *MaxSATProblem) RunSeq() *SequentialResult {
+	return self.Problem.runSeq(self.FitnessFunction, self.QualityFitnessFunction)
 }
 
-func (self *MaxSATProblem) RunSeqFitnessQuality() *SeqRes {
-	return self.Problem.runSeqFitnessQuality(self.FitnessFunction, self.QualityFitnessFunction, self.DoWhenQualityFitnessTrue)
-}
-
-func (self *MaxSATProblem) RunParCEvals() *ParRes {
-	return self.Problem.runParCEvals(self.FitnessFunction)
-}
-
-func (self *MaxSATProblem) RunParFitnessQuality() *ParRes {
-	return self.Problem.runParFitnessQuality(self.FitnessFunction, self.QualityFitnessFunction, self.DoWhenQualityFitnessTrue)
+func (self *MaxSATProblem) RunConcurrent() *ConcurrentResult {
+	return self.Problem.runConcurrent(self.FitnessFunction, self.QualityFitnessFunction)
 }

@@ -6,43 +6,18 @@ import (
 	//	"fmt"
 )
 
-// Run is the method of SeqCEvals to find the solution by the amount of evaluations criteria.
-func (s *SeqCEvals) Run() TIndEval {
-	population := s.GetPopulation()
-	p2Eval := make(TPopulation, len(population))
-	copy(p2Eval, population)
-
-	var qf TQualityF = func(v int) bool { return false }
-	var df Tdo = func(i TIndEval) {}
-	//	fmt.Println("A evaluar")
-	IndEvals := Evaluate(p2Eval, s.FitnessF, qf, df)
-	ce := len(IndEvals)
-	sort.Sort(IndEvals)
-
-	for ce < s.CEvals {
-		p2Eval = Reproduce(IndEvals, s.PMutation)
-		IndEvals = Evaluate(p2Eval, s.FitnessF, qf, df)
-		sort.Sort(IndEvals)
-		ce += len(IndEvals)
-		//		fmt.Println("Hechas", ce)
-	}
-	return IndEvals[0]
-}
-
-// Run is the method of SeqFitnessQuality to find the solution by the fitness quality criteria.
-func (s *SeqFitnessQuality) Run() (TIndEval, int) {
+func (s *SequentialProblem) Run() (TIndEval, int) {
 	population := s.GetPopulation()
 	p2Eval := make(TPopulation, len(population))
 	copy(p2Eval, population)
 	alcanzadaSolucion := false
 	alcanzadaSolucionF := func(ind TIndEval) {
-		s.Do(ind)
 		alcanzadaSolucion = true
 	}
 	iEvals := Evaluate(p2Eval, s.FitnessF, s.QualityF, alcanzadaSolucionF)
 	cEvals := len(iEvals)
 	sort.Sort(iEvals)
-	for !alcanzadaSolucion {
+	for !alcanzadaSolucion && cEvals < s.Evaluations {
 		lenSubPop := len(iEvals)
 		p2Rep := EnhanceParents(iEvals[:lenSubPop])
 		parents := ParentsSelector(p2Rep, lenSubPop/2)

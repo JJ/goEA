@@ -26,30 +26,22 @@ type TFitnessFunc func(TIndividual) int
 type TFSelPop2Eval func() TPopulation
 type TFSelPop2Rep func() TIndsEvaluated
 
-
-type TRes struct{
-	NumberOfEvals    int
-	//	PopSize        int
-	//	ChromosomeSize int
-}
-type TSolution struct{
+type SequentialResult struct{
 	EvolutionDelay int64
+	Evaluations    int
 	BestSol        int
 }
-type SeqRes struct{
-	TRes
-	TSolution
-}
 
-type ParRes struct{
-	TRes
+type ConcurrentResult struct{
+	Evaluations,
 	EvaluatorsCapacity,
 	ReproducersCapacity,
 	EvaluatorsCount,
 	ReproducersCount,
 	IslandsCount,
 	Emigrations          int
-	TSolution
+	EvolutionDelay       int64
+	BestSol              int
 }
 
 type Data struct{
@@ -70,7 +62,6 @@ type Problem struct{
 
 type IProblem interface {
 	QualityFitnessFunction(v int) bool
-	DoWhenQualityFitnessTrue(i TIndEval)
 	FitnessFunction(ind TIndividual) int
 }
 
@@ -83,11 +74,6 @@ type TIndEval struct {
 type TPoolFitnessQualityResult struct {
 	TIndEval
 	CEvals      int
-	Emigrations int
-}
-
-type TPoolCEvalsResult struct {
-	TIndEval
 	Emigrations int
 }
 
@@ -119,38 +105,25 @@ type Tdo func(TIndEval)
 
 type TQualityF func(int) bool
 
-type FitnessQualityConf struct {
-	QualityF TQualityF
-	Do       Tdo
+type SequentialProblem struct {
+	GetPopulation func() TPopulation
+	FitnessF    TFitnessFunc
+	QualityF    TQualityF
+	Evaluations int
+	PMutation   float32
 }
 
-type SeqCEvals struct {
-	SeqConf
-	CEvalsConf
-}
-
-type SeqFitnessQuality struct {
-	SeqConf
-	FitnessQualityConf
-}
-
-type ParConf struct {
-	SeqConf
+type ConcurrentProblem struct {
+	GetPopulation func() TPopulation
+	FitnessF    TFitnessFunc
+	PMutation   float32
 	MSizeEvals,
 	MSizeReps,
 	CEvaluators,
 	CReproducers,
-	CIslands int
-}
-
-type ParCEvals struct {
-	ParConf
-	CEvalsConf
-}
-
-type ParFitnessQuality struct {
-	ParConf
-	FitnessQualityConf
+	CIslands    int
+	QualityF    TQualityF
+	Evaluations int
 }
 
 type EJob struct {
